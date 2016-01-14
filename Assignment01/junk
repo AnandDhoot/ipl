@@ -1,0 +1,23 @@
+VOID: 		void
+IDENTIFIER: 		main
+lparen		(
+INT: 		int
+IDENTIFIER: 		a
+comma 		,
+FLOAT: 		float
+IDENTIFIER: 		b
+rparen		)
+
+lcurly 		{
+
+IDENTIFIER: 		a
+equals 		=
+INT_CONSTANT: 		34
+semicolon 		;
+
+IDENTIFIER: 		b
+equals 		=
+FLOAT_CONSTANT: 		324.3542e-34
+semicolon 		;
+
+rcurly 		}
