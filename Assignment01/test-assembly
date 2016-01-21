@@ -1,5 +1,5 @@
-void main(int a, float b)
+void foo ( ) 
 {
-	a = 34;
-	b = 324.3542e-34;
+	int a ;
+	a = 2 ;
 }

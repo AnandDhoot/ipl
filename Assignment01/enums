@@ -1,5 +1,4 @@
-        enum Tokens{sjdv,
-        			VOID,
+        enum Tokens{        			VOID=0,
         			INT,
 					FLOAT,
 					RETURN,
