@@ -10,7 +10,7 @@ if 														return Parser::IF;
 else 													return Parser::ELSE;
 while 													return Parser::WHILE;
 for 													return Parser::FOR;
-[+-]?[1-9][0-9]*										return Parser::INT_CONSTANT;
+[1-9][0-9]*												return Parser::INT_CONSTANT;
 0[xX][0-9a-fA-F]*										return Parser::INT_CONSTANT;
 0[bB][01]*												return Parser::INT_CONSTANT;
 0[0-7]* 												return Parser::INT_CONSTANT;
