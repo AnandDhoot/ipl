@@ -43,7 +43,6 @@ class RefAst : public abstract_astnode {
     }
 };
 
-
 class IntConst : public ExpAst {
 
   public:
@@ -103,7 +102,6 @@ class Empty : public StmtAst{
         }
 };
 
-
 class Return : public StmtAst{
 
     public:
@@ -147,11 +145,27 @@ class Op2 : public ExpAst{
         }
 };
 
+class Funcall : public ExpAst{
+
+    public:
+        list<ExpAst *> expList;
+        Funcall(list<ExpAst *> x){
+            expList = x;
+        }
+
+        void print(){
+            cout<<"(Funcall " ; 
+            for(list<ExpAst *>::iterator it; it != expList.end(); it++)
+                (*it)->print();
+            cout<<")";
+        }
+};
+
 class Ass : public StmtAst{
 
     public:
-    	ExpAst *leftExp;
-    	ExpAst *rightExp;
+        ExpAst *leftExp;
+        ExpAst *rightExp;
         Ass(ExpAst *x,ExpAst *y){
             leftExp = x;
             rightExp = y;
@@ -161,11 +175,73 @@ class Ass : public StmtAst{
             cout<<"(Assign_exp " ; leftExp->print(); rightExp->print(); cout<<")";
         }
 };
+
+class Seq : public StmtAst{
+
+    public:
+        list<StmtAst *> stmtList;
+        Seq(list<StmtAst *> x){
+            stmtList = x;
+        }
+
+        void print(){
+            cout<<"(Seq " ; 
+            for(list<StmtAst *>::iterator it; it != stmtList.end(); it++)
+                (*it)->print();
+            cout<<")";
+        }
+};
+
+class If : public StmtAst{
+
+    public:
+        ExpAst *IfExp;
+        StmtAst *thenStmt;
+        StmtAst *elseStmt;
+        If(ExpAst *x, StmtAst *y, StmtAst *z){
+            IfExp = x;
+            thenStmt = y;
+            elseStmt = z;
+        }
+
+        void print(){
+            cout<<"(If " ; 
+            IfExp->print(); 
+            thenStmt->print(); 
+            elseStmt->print(); 
+            cout<<")";
+        }
+};
+
+class For : public StmtAst{
+
+    public:
+        ExpAst *initExp;
+        ExpAst *condExp;
+        ExpAst *incExp;
+        StmtAst *bodyStmt;
+        For(ExpAst *w, ExpAst *x, ExpAst *y, StmtAst *z){
+            initExp = w;
+            condExp = x;
+            incExp = y;
+            bodyStmt = z;
+        }
+
+        void print(){
+            cout<<"(For " ; 
+            initExp->print(); 
+            condExp->print(); 
+            incExp->print(); 
+            bodyStmt->print(); 
+            cout<<")";
+        }
+};
+
 class While : public StmtAst{
 
     public:
-    	ExpAst *whileExp;
-    	StmtAst *thenStmt;
+        ExpAst *whileExp;
+        StmtAst *thenStmt;
         While(ExpAst *x,StmtAst *y){
             whileExp = x;
             thenStmt = y;
@@ -199,5 +275,24 @@ class Deref : public RefAst{
 
         void print(){
             cout<<"(Deref "; exp->print(); cout<<")";
+        }
+};
+
+class ArrayRef : public RefAst{
+
+    public:
+        Identifier *varIdent;
+        list<ExpAst *> expList;
+        ArrayRef(Identifier *x, list<ExpAst *> y){
+            varIdent = x;
+            expList = y;
+        }
+
+        void print(){
+            cout<<"(ArrayRef " ; 
+            varIdent->print();
+            for(list<ExpAst *>::iterator it; it != expList.end(); it++)
+                (*it)->print();
+            cout<<")";
         }
 };
