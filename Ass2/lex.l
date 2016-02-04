@@ -15,7 +15,7 @@ for 													return Parser::FOR;
 0[bB][01]*												return Parser::INT_CONSTANT;
 0[0-7]* 												return Parser::INT_CONSTANT;
 [0-9]+\.[0-9]*([eE]?[+-]?[0-9]+)? 						return Parser::FLOAT_CONSTANT;
-\"([^\\\"]*(\\[tn\"\\][^\\\"]*)?)*\"					return Parser::STRING_LITERAL;
+\"([^\\\"]*(\\[tn\"\\][^\\\"]*)?)*\"		{Parser::d_val__ = std::string (matched());   return ParserBase::STRING_LITERAL;}
 
 "("                                         			return '(';
 ")"                                         			return ')';

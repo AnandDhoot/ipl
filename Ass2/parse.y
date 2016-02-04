@@ -3,7 +3,21 @@
 %token WHILE FOR INT_CONSTANT FLOAT_CONSTANT
 %token STRING_LITERAL OR_OP AND_OP EQ_OP DEC_OP PTR_OP
 %token NE_OP LE_OP GE_OP INC_OP IDENTIFIER OTHERS STRUCT
- 
+
+%polymorphic STRING : std::string;  EXPAST : ExpAst*; STMTAST : StmtAst*; STMTLIST : list<StmtAst*>*; EXPLIST : list<ExpAst*>*; INTCONST : IntConst*; FLOATCONST : FloatConst*; STRINGCONST : StringConst*; IDENTIFIER : Identifier*; ArrayRef : ArrayRef*; Op2 : Op2*; Op1 : Op1*; FUNCALL : Funcall*; Seq: Seq*; Return : Return*; Ass : Ass*; If : If*; Empty : Empty*; While : While*; For : For*; INT : int; FLOAT : float;
+
+%type<STRING> unary_operator IDENTIFIER STRING_LITERAL
+%type<INT> INT_CONSTANT
+%type<FLOAT> FLOAT_CONSTANT
+
+%type<EXPAST> expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression l_expression
+
+%type<STMTAST> compound_statement statement assignment_statement selection_statement iteration_statement      
+
+%type<EXPLIST> expression_list
+
+%type<STMTLIST> statement_list
+
 %%
 
 translation_unit 
