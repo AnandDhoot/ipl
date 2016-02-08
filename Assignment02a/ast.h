@@ -163,7 +163,7 @@ class Funcall : public ExpAst{
 
         void print(){
             cout<<"(Funcall " ; 
-            for(list<ExpAst *>::iterator it; it != expList.end(); it++)
+            for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
                 (*it)->print();
             cout<<")";
         }
