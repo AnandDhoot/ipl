@@ -1,6 +1,6 @@
 all:    Scanner.ih Scanner.h Scannerbase.h lex.cc parse.cc main.cc Parser.h Parserbase.h Parser.ih
 	g++  -g --std=c++0x lex.cc parse.cc main.cc -o parser
-	./parser < test.c
+	./parser < test.c > junk
 
         
 Scanner.ih: lex.l

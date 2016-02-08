@@ -7,7 +7,7 @@ using namespace std;
 class abstract_astnode
 {
 public:
-virtual void print () = 0;
+virtual void print (int level) = 0;
 // virtual std::string generate_code(const symbolTable&) = 0;
 // virtual basic_types getType() = 0;
 // virtual bool checkTypeofAST() = 0;
@@ -21,26 +21,17 @@ private:
 
 class ExpAst : public abstract_astnode {
 	public:
-
-    virtual void print (){
-        cout<<"This is an abstract ExpAst class"<<endl;
-    }
+    virtual void print (int level){}
 };
 
 class StmtAst : public abstract_astnode {
     public:
-
-    virtual void print (){
-        cout<<"This is an abstract StmtAst class"<<endl;
-    }
+    virtual void print (int level){}
 };
 
 class RefAst : public ExpAst {
 	public:
-
-    virtual void print (){
-        cout<<"This is an abstract RefAst class"<<endl;
-    }
+    virtual void print (int level){}
 };
 
 class IntConst : public ExpAst {
@@ -51,7 +42,7 @@ class IntConst : public ExpAst {
     	x = n;
     }
 
-    void print(){
+    void print(int level){
     	cout<<"(IntConst "<<x<<")";
     }
 };
@@ -64,7 +55,7 @@ class FloatConst : public ExpAst {
     	x = n;
     }
 
-    void print(){
+    void print(int level){
     	cout<<"(FloatConst "<<x<<")";
     }
 };
@@ -77,7 +68,7 @@ class StringConst : public ExpAst {
     	x = n;
     }
 
-    void print(){
+    void print(int level){
     	cout<<"(StringConst "<<x<<")";
     }
 };
@@ -90,14 +81,15 @@ class Identifier : public RefAst {
     	x = n;
     }
 
-    void print(){
+    void print(int level){
     	cout<<"(Id \""<<x<<"\")";
     }
 };
 
 class Empty : public StmtAst{
     public:
-        void print (){
+        void print (int level){
+            cout << string(level, '\t');
             cout<<"(Empty)";
         }
 };
@@ -110,8 +102,9 @@ class Return : public StmtAst{
             retExp = x;
         }
 
-        void print(){
-            cout<<"(Return "; retExp->print(); cout<<")";
+        void print(int level){
+            cout << string(level, '\t');
+            cout<<"(Return "; retExp->print(0); cout<<")";
         }
 };
 
@@ -125,8 +118,9 @@ class Op1 : public ExpAst{
             restExp = x;
         }
 
-        void print(){
-            cout<<"("<<operat<<" " ; restExp->print(); cout<<")";
+        void print(int level){
+            cout << string(level, '\t');
+            cout<<"("<<operat<<" " ; restExp->print(0); cout<<")";
         }
 };
 
@@ -142,8 +136,9 @@ class Op2 : public ExpAst{
             rightExp = y;
         }
 
-        void print(){
-            cout<<"("<<operat<<" " ; leftExp->print(); rightExp->print(); cout<<")";
+        void print(int level){
+            cout << string(level, '\t');
+            cout<<"("<<operat<<" " ; leftExp->print(0); rightExp->print(0); cout<<")";
         }
 };
 
@@ -161,10 +156,15 @@ class Funcall : public ExpAst{
             expList = *x;
         }
 
-        void print(){
-            cout<<"(Funcall " ; 
+        void print(int level){
+            cout << string(level, '\t');
+            cout<<"(Funcall " << endl; 
             for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
-                (*it)->print();
+            {
+                cout << string(level+1, '\t');
+                (*it)->print(0);
+            }
+            cout << string(level, '\t');
             cout<<")";
         }
 };
@@ -179,8 +179,9 @@ class Ass : public StmtAst{
             rightExp = y;
         }
 
-        void print(){
-            cout<<"(Assign_exp " ; leftExp->print(); rightExp->print(); cout<<")";
+        void print(int level){
+            cout << std::string(level, '\t');
+            cout<<"(Assign_exp " ; leftExp->print(0); rightExp->print(0); cout<<")";
         }
 };
 
@@ -195,11 +196,15 @@ class Seq : public StmtAst{
             stmtList = *x;
         }
 
-        void print(){
-            cout<<"(Seq " ; 
-		cout<<stmtList.size();
+        void print(int level){
+            cout << string(level, '\t');
+            cout<<"(Seq " << endl; 
             for(list<StmtAst *>::iterator it = stmtList.begin(); it != stmtList.end(); it++)
-                (*it)->print();
+            {
+                (*it)->print(level+1);
+                cout << endl;
+            }
+            cout << string(level, '\t');
             cout<<")";
         }
 };
@@ -216,11 +221,16 @@ class If : public StmtAst{
             elseStmt = z;
         }
 
-        void print(){
-            cout<<"(If " ; 
-            IfExp->print(); 
-            thenStmt->print(); 
-            elseStmt->print(); 
+        void print(int level){
+            cout << string(level, '\t');
+            cout<<"(If " << endl; 
+            IfExp->print(level+1); 
+            cout << endl;
+            thenStmt->print(level+1); 
+            cout << endl;
+            elseStmt->print(level+1); 
+            cout << endl;
+            cout << string(level, '\t');
             cout<<")";
         }
 };
@@ -239,13 +249,19 @@ class For : public StmtAst{
             bodyStmt = z;
         }
 
-        void print(){
-            cout<<"(For " ; 
-            initExp->print(); 
-            condExp->print(); 
-            incExp->print(); 
-            bodyStmt->print(); 
-            cout<<")";
+        void print(int level){
+            cout << string(level, '\t');
+            cout << "(For " << endl; 
+            initExp->print(level+1); 
+            cout << endl;
+            condExp->print(level+1); 
+            cout << endl;
+            incExp->print(level+1); 
+            cout << endl;
+            bodyStmt->print(level+1); 
+            cout << endl;
+            cout << string(level, '\t');
+            cout<<")" << endl;
         }
 };
 
@@ -259,8 +275,8 @@ class While : public StmtAst{
             thenStmt = y;
         }
 
-        void print(){
-            cout<<"(While " ; whileExp->print(); thenStmt->print(); cout<<")";
+        void print(int level){
+            cout<<"(While " ; whileExp->print(0); thenStmt->print(0); cout<<")";
         }
 };
 
@@ -272,8 +288,8 @@ class Pointer : public RefAst{
             exp = x;
         }
 
-        void print(){
-            cout<<"(Pointer "; exp->print(); cout<<")";
+        void print(int level){
+            cout<<"(Pointer "; exp->print(0); cout<<")";
         }
 };
 
@@ -285,8 +301,8 @@ class Deref : public RefAst{
             exp = x;
         }
 
-        void print(){
-            cout<<"(Deref "; exp->print(); cout<<")";
+        void print(int level){
+            cout<<"(Deref "; exp->print(0); cout<<")";
         }
 };
 
@@ -300,10 +316,10 @@ class ArrayRef : public RefAst{
             exp = y;
         }
 
-        void print(){
+        void print(int level){
             cout<<"(ArrayRef " ; 
-            varIdent->print();
-	    exp->print();
+            varIdent->print(0);
+	    exp->print(0);
             cout<<")";
         }
 };

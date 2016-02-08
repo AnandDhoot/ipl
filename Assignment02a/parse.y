@@ -72,17 +72,17 @@ compound_statement
 	: '{' '}'
   {
     $$ = new Seq(new list<StmtAst*>());
-    ($$)->print();std::cout<<std::endl;
+    ($$)->print(0);std::cout<<std::endl;
   }
 	| '{' statement_list '}'
   {
     $$ = new Seq($2);
-    ($$)->print();std::cout<<std::endl;
+    ($$)->print(0);std::cout<<std::endl;
   }
   | '{' declaration_list statement_list '}'
   {
     $$ = new Seq($3);
-    ($$)->print();std::cout<<std::endl;
+    ($$)->print(0);std::cout<<std::endl;
   }
 	;
 statement_list
@@ -119,7 +119,7 @@ statement
     | RETURN expression ';'	
     	{
     		$$ = new Return($2);
-    		$$ -> print();
+    		$$ -> print(0);
     	}
     ;
 
@@ -127,12 +127,12 @@ assignment_statement
 	: ';' 	
 		{
 			$$ = new Empty();
-			// $$ -> print();
+			// $$ -> print(0);
 		}	
 	|  l_expression '=' expression ';'	
 		{
 			$$ = new Ass($1, $3);
-			// $$ -> print();
+			// $$ -> print(0);
 		}	
 	;
 
@@ -264,7 +264,7 @@ primary_expression
     | l_expression '=' expression
 		{
 			$$ = new Op2("Assign", $1, $3);
-			// $$ -> print();
+			// $$ -> print(0);
 		}	
     | INT_CONSTANT 
 	    {
@@ -340,13 +340,13 @@ iteration_statement
 	: WHILE '(' expression ')' statement 
 		{
 			$$ = new While($3, $5);
-			// $$ -> print(); 
+			// $$ -> print(0); 
 
 		}	
 	| FOR '(' expression ';' expression ';' expression ')' statement  //modified this production
 		{
 			$$ = new For($3, $5, $7, $9);
-			// $$ -> print(); 
+			// $$ -> print(0); 
 		}
     ;
 
