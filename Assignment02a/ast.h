@@ -120,7 +120,8 @@ class Op1 : public ExpAst{
     public:
     	string operat;
     	ExpAst *restExp;
-        Op1(ExpAst *x){
+        Op1(string w, ExpAst *x){
+            operat = w;
             restExp = x;
         }
 
@@ -135,7 +136,8 @@ class Op2 : public ExpAst{
     	string operat;
     	ExpAst *leftExp;
     	ExpAst *rightExp;
-        Op2(ExpAst *x,ExpAst *y){
+        Op2(string w, ExpAst *x,ExpAst *y){
+            operat = w;
             leftExp = x;
             rightExp = y;
         }
@@ -148,9 +150,15 @@ class Op2 : public ExpAst{
 class Funcall : public ExpAst{
 
     public:
+        Identifier* funName;
         list<ExpAst *> expList;
-        Funcall(list<ExpAst *> x){
+        Funcall(Identifier *w, list<ExpAst *> x){
+            funName = w;
             expList = x;
+        }
+        Funcall(Identifier *w, list<ExpAst *>* x){
+            funName = w;
+            expList = *x;
         }
 
         void print(){
@@ -182,6 +190,9 @@ class Seq : public StmtAst{
         list<StmtAst *> stmtList;
         Seq(list<StmtAst *> x){
             stmtList = x;
+        }
+        Seq(list<StmtAst *>* x){
+            stmtList = *x;
         }
 
         void print(){
