@@ -69,11 +69,22 @@ constant_expression
     ;
 
 compound_statement
-	: '{' '}' 
-	| '{' statement_list '}' 
-    | '{' declaration_list statement_list '}' 
+	: '{' '}'
+  {
+    $$ = new Seq(new list<StmtAst*>());
+    ($$)->print();std::cout<<std::endl;
+  }
+	| '{' statement_list '}'
+  {
+    $$ = new Seq($2);
+    ($$)->print();std::cout<<std::endl;
+  }
+  | '{' declaration_list statement_list '}'
+  {
+    $$ = new Seq($3);
+    ($$)->print();std::cout<<std::endl;
+  }
 	;
-
 statement_list
 	: statement		
     	{
@@ -91,6 +102,7 @@ statement
     : '{' statement_list '}'  //a solution to the local decl problem
     	{
     		$$ = new Seq($2);
+		
     	}
     | selection_statement
 		{

@@ -1,10 +1,8 @@
-void goo ( int a, int b )
-{
-	a = 2 ;
-}
-
 void foo ( ) 
 {
-	int a ;
 	a = 2 ;
+	a=3;
+	for(i, i=3,i++){
+	a=2;
+}
 }

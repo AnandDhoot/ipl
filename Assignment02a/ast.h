@@ -197,8 +197,9 @@ class Seq : public StmtAst{
 
         void print(){
             cout<<"(Seq " ; 
-            for(list<StmtAst *>::iterator it; it != stmtList.end(); it++)
-                (*it)->print();
+		cout<<stmtList.size();
+            //for(list<StmtAst *>::iterator it; it != stmtList.end(); it++)
+              //  (*it)->print();
             cout<<")";
         }
 };
