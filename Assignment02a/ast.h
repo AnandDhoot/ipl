@@ -198,8 +198,8 @@ class Seq : public StmtAst{
         void print(){
             cout<<"(Seq " ; 
 		cout<<stmtList.size();
-            //for(list<StmtAst *>::iterator it; it != stmtList.end(); it++)
-              //  (*it)->print();
+            for(list<StmtAst *>::iterator it = stmtList.begin(); it != stmtList.end(); it++)
+                (*it)->print();
             cout<<")";
         }
 };
