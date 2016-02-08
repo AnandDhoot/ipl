@@ -35,7 +35,7 @@ class StmtAst : public abstract_astnode {
     }
 };
 
-class RefAst : public abstract_astnode {
+class RefAst : public ExpAst {
 	public:
 
     virtual void print (){
@@ -292,18 +292,17 @@ class Deref : public RefAst{
 class ArrayRef : public RefAst{
 
     public:
-        Identifier *varIdent;
-        list<ExpAst *> expList;
-        ArrayRef(Identifier *x, list<ExpAst *> y){
+        RefAst *varIdent;
+        ExpAst *exp;
+        ArrayRef(RefAst *x,ExpAst *y){
             varIdent = x;
-            expList = y;
+            exp = y;
         }
 
         void print(){
             cout<<"(ArrayRef " ; 
             varIdent->print();
-            for(list<ExpAst *>::iterator it; it != expList.end(); it++)
-                (*it)->print();
+	    exp->print();
             cout<<")";
         }
 };

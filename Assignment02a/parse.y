@@ -279,7 +279,7 @@ l_expression
 	    }
     | l_expression '[' expression ']'
     	{
-    		$$ = new ArrayRef()
+    		$$ = new ArrayRef($1,$3);
     	}
     | '*' l_expression
 		{
@@ -295,7 +295,15 @@ l_expression
 
 expression_list
     : expression
+    	{
+    		$$ = new list<ExpAst *>();
+    		$$->push_back($1);
+    	}
     | expression_list ',' expression
+    	{
+    		((list<ExpAst *>*)$1)->push_back($3);
+    		$$ = $1;
+    	}
 	;
 
 unary_operator
