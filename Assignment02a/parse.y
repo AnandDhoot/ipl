@@ -263,7 +263,7 @@ primary_expression
 		}	
     | l_expression '=' expression
 		{
-			$$ = new Op2("Assign", $1, $3);
+			$$ = new Assign($1, $3);
 			// $$ -> print(0);
 		}	
     | INT_CONSTANT 
@@ -281,7 +281,11 @@ primary_expression
 	| '(' expression ')' 
 		{
 			$$ = $2;
-		}	
+		}
+    | '&' l_expression
+		{
+			$$ = new Pointer($2);
+		}
 	;
 
 l_expression
@@ -297,12 +301,14 @@ l_expression
 		{
 			$$ = new Deref($2);
 		}
-    | '&' l_expression // & and * are similar
-		{
-			$$ = new Pointer($2);
-		}
     | l_expression '.' IDENTIFIER
+		{
+			$$ = new Member($1, new Identifier($3));
+		}
     | l_expression PTR_OP IDENTIFIER
+		{
+			$$ = new Arrow($1, new Identifier($3));
+		}
     ;
 
 expression_list
