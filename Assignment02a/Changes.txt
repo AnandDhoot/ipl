@@ -1,0 +1,13 @@
+Modification on 12th February
+
+The AST structures for ExpAst and RefAst have changed. The changes are colored green. Examples are in black. Specifically, the changes are:
+
+    RefAst now represents an expression with a lvalue, i.e. it corresponds to a location. Assignments, therefore, now have a RefAst as the first operand.
+    Expressions that have & as the root operator (as in &x) do not have their values in locations (please understand this: the value of &x is itself a location, but  this value is not contained in a location. This is in contrast to x[i] whose value, say 3, is contained in a location). Therefore,  & expressions (named POINTER in our AST)  have been pushed out of RefAst and included in ExpAst.
+    Field access (MEMBER) and dereferencing followed by field access (ARROW) have been introduced. 
+    Array references have changed and the  AST for multidimensional array access now looks like a tree. A lot of you had been unhappy with the list representation and, now I can see, justifiably so. Well, have your tree and enjoy it.
+    The modified deadline is 14th February 2016 (Sunday) midnight. 
+
+End of modification
+
+-------------------------------------------------------------------------------------------------------------------------------
