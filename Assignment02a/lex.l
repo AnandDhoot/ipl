@@ -42,6 +42,6 @@ for 													return Parser::FOR;
 "<="													return Parser::LE_OP;
 ">="													return Parser::GE_OP;
 "++"													return Parser::INC_OP;
-
+"->"                                                    return Parser::PTR_OP;
 [a-zA-Z_][a-zA-Z0-9_]*									{Parser::d_val__ = std::string (matched());   return ParserBase::IDENTIFIER;};
 "."                                         			return '.';
