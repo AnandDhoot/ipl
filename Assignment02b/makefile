@@ -1,7 +1,7 @@
-all:    Scanner.ih Scanner.h Scannerbase.h lex.cc parse.cc main.cc Parser.h Parserbase.h Parser.ih
+all:   clean Scanner.ih Scanner.h Scannerbase.h lex.cc parse.cc main.cc Parser.h Parserbase.h Parser.ih
 	g++  -g --std=c++0x lex.cc parse.cc main.cc -o parser
 	./parser < test.c > junk
-
+	subl junk
         
 Scanner.ih: lex.l
 	if [ ! -e Scanner.ih ]; then \
@@ -20,7 +20,7 @@ parse.cc Parser.h Parserbase.h Parser.ih: parse.y
 	sed -i '\|void Parser::print__()| i Meta__::SType ParserBase::d_val__; ' parse.cc
 	sed -i '\|typedef Meta__::SType STYPE__;| a \\tpublic: static int lineNum; ' Parserbase.h 
 
-	sed -i '\|void Parser::print__()| i int ParserBase::lineNums = 1; ' parse.cc
+	sed -i '\|void Parser::print__()| i int ParserBase::lineNum = 1; ' parse.cc
 
 .PHONY: clean     
 clean:
