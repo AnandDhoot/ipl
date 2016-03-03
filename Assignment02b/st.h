@@ -1,13 +1,18 @@
 #include <map>
+#include <iostream>
+#include <vector>
 using namespace std;
+class Tb;
 class symbol{
+public:
 	string name;
 	bool vartype; //var/fun
 	string scope; // param/local/global
 	string type;
 	int size;
 	int offset;
-	localTb* symtab; // if of type struct
+	vector<int> dimensions;
+	Tb* symtab; // if of type struct
 
 	symbol(	string name1,
 	bool vartype1, //var/fun
@@ -24,16 +29,36 @@ class symbol{
 		offset=offset1;
 
 	}
+	void print(){
+		cout<<name<<"\t"<<vartype<<"\t"<<scope<<"\t"<<type<<"\t"<<size<<"\t"<<offset;
+		if(dimensions.size() != 0){
+			cout << "Array: ";
+			for(int i = 0; i < dimensions.size(); i++)
+				cout << " [" << dimensions[i] << "] ";
+			cout<<"\n";
+		}
+
+	}
 };
 class Tb{
+public:
 	string name;
 	map<string,symbol> sym;
 	void print(){
-		for(it_type iterator = sym.begin(); iterator != sym.end(); iterator++) {
-			
+		cout<<name<<"\n";
+		for(map<string,symbol>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
+			iterator->second.print();
 
+		}
 	}
-	void recPrint(){
 
+	void recPrint(){
+		cout<<name<<"\n";
+		for(map<string,symbol>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
+			iterator->second.print();
+			if(iterator->second.symtab!=NULL)
+				iterator->second.symtab->recPrint();
+
+		}
 	}
 };
