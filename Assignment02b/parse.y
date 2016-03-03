@@ -1,4 +1,3 @@
-
 %token VOID INT FLOAT RETURN IF ELSE
 %token WHILE FOR INT_CONSTANT FLOAT_CONSTANT
 %token STRING_LITERAL OR_OP AND_OP EQ_OP PTR_OP
@@ -12,10 +11,11 @@
 %type<STMTLIST> statement_list
 %type<EXPLIST> expression_list
 %type<STMTAST> compound_statement statement assignment_statement selection_statement iteration_statement 
-%type<EXPAST> expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression 
+%type<EXPAST> expression logical_and_expression logical_or_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression 
 %type<REFAST> l_expression
 
 %%
+
 
 translation_unit 
     :  struct_specifier
@@ -32,13 +32,8 @@ function_definition
 	: type_specifier fun_declarator compound_statement 
 	;
 
-type_specifier
-    : base_type
-    | type_specifier '*'
-    ;
-
-base_type 
-    : VOID 	
+type_specifier                   // This is the information 
+    : VOID 	                 // that gets associated with each identifier
     | INT   
 	| FLOAT 
     | STRUCT IDENTIFIER 
@@ -47,7 +42,9 @@ base_type
 fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
 	| IDENTIFIER '(' ')' 
-	;
+    | '*' fun_declarator  //The * is associated with the 
+	;                      //function name
+
 
 parameter_list
 	: parameter_declaration 
@@ -56,35 +53,55 @@ parameter_list
 
 parameter_declaration
 	: type_specifier declarator 
-        ;
+    ;
 
 declarator
 	: IDENTIFIER 
-	| declarator '[' constant_expression ']' 
-        ;
+	| declarator '[' primary_expression']' // check separately that it is a constant
+    | '*' declarator 
+    ;
 
-constant_expression 
-    : INT_CONSTANT 
-    | FLOAT_CONSTANT 
+primary_expression 
+    : l_expression
+		{
+			$$ = $1;
+		}	
+    | INT_CONSTANT 
+	    {
+	    	$$ = new IntConst($1);
+	    }
+    | FLOAT_CONSTANT
+	    {
+	    	$$ = new FloatConst($1);
+	    }
+    | STRING_LITERAL
+	    {
+	    	$$ = new StringConst($1);
+	    }
+    | '(' expression ')' 
+		{
+			$$ = $2;
+		}
     ;
 
 compound_statement
 	: '{' '}'
-  {
-    $$ = new Seq(new list<StmtAst*>());
-    ($$)->print(0);std::cout<<std::endl;
-  }
+		{
+			$$ = new Seq(new list<StmtAst*>());
+			($$)->print(0);std::cout<<std::endl;
+		}
 	| '{' statement_list '}'
-  {
-    $$ = new Seq($2);
-    ($$)->print(0);std::cout<<std::endl;
-  }
-  | '{' declaration_list statement_list '}'
-  {
-    $$ = new Seq($3);
-    ($$)->print(0);std::cout<<std::endl;
-  }
+		{
+			$$ = new Seq($2);
+			($$)->print(0);std::cout<<std::endl;
+		}
+ 	| '{' declaration_list statement_list '}'
+		{
+			$$ = new Seq($3);
+			($$)->print(0);std::cout<<std::endl;
+		}
 	;
+
 statement_list
 	: statement		
     	{
@@ -99,10 +116,9 @@ statement_list
 	;
 
 statement
-    : '{' statement_list '}'  //a solution to the local decl problem
+    : '{' statement_list '}' 
     	{
-    		$$ = new Seq($2);
-		
+    		$$ = new Seq($2);	
     	}
     | selection_statement
 		{
@@ -127,21 +143,30 @@ assignment_statement
 	: ';' 	
 		{
 			$$ = new Empty();
-			// $$ -> print(0);
-		}	
-	|  l_expression '=' expression ';'	
+		}			
+	|  expression ';'  
 		{
-			$$ = new Ass($1, $3);
-			// $$ -> print(0);
+			$$ = new Ass($1);
 		}	
 	;
 
-expression
+expression 
+    :  logical_or_expression
+		{
+			$$ = $1;
+		}	
+    |  l_expression '=' expression 	
+		{
+			$$ = new Assign($1, $3);
+		}	
+    ;
+
+logical_or_expression            // The usual hierarchy that starts here...
 	: logical_and_expression
 		{
 			$$ = $1;
 		}	
-    | expression OR_OP logical_and_expression
+    | logical_or_expression OR_OP logical_and_expression
 		{
 			$$ = new Op2("OR", $1, $3);
 		}	
@@ -250,42 +275,10 @@ postfix_expression
     	{
     		$$ = new Funcall(new Identifier($1), $3);
     	}
-	| l_expression INC_OP 
+	| l_expression INC_OP
 		{
 			$$ = new Op1("PlusPlus", $1);
-		}				
-	;
-
-primary_expression
-	: l_expression
-		{
-			$$ = $1;
-		}	
-    | l_expression '=' expression
-		{
-			$$ = new Assign($1, $3);
-			// $$ -> print(0);
-		}	
-    | INT_CONSTANT 
-	    {
-	    	$$ = new IntConst($1);
-	    }
-	| FLOAT_CONSTANT
-	    {
-	    	$$ = new FloatConst($1);
-	    }
-    | STRING_LITERAL
-	    {
-	    	$$ = new StringConst($1);
-	    }
-	| '(' expression ')' 
-		{
-			$$ = $2;
-		}
-    | '&' l_expression
-		{
-			$$ = new Pointer($2);
-		}
+		}		
 	;
 
 l_expression
@@ -309,6 +302,10 @@ l_expression
 		{
 			$$ = new Arrow($1, new Identifier($3));
 		}
+    | '(' l_expression ')'	
+    	{
+    		$$ = $2;
+    	}
     ;
 
 expression_list
@@ -333,6 +330,14 @@ unary_operator
     	{
     		$$ = "NOT";
     	} 	
+    | '&'
+    	{
+    		$$ = "AddressOf";
+    	} 	
+    | '*'
+    	{
+    		$$ = "Deref";
+    	} 	
 	;
 
 selection_statement
@@ -346,13 +351,10 @@ iteration_statement
 	: WHILE '(' expression ')' statement 
 		{
 			$$ = new While($3, $5);
-			// $$ -> print(0); 
-
 		}	
 	| FOR '(' expression ';' expression ';' expression ')' statement  //modified this production
 		{
 			$$ = new For($3, $5, $7, $9);
-			// $$ -> print(0); 
 		}
     ;
 

@@ -346,13 +346,11 @@ iteration_statement
 	: WHILE '(' expression ')' statement 
 		{
 			$$ = new While($3, $5);
-			// $$ -> print(0); 
 
 		}	
 	| FOR '(' expression ';' expression ';' expression ')' statement  //modified this production
 		{
 			$$ = new For($3, $5, $7, $9);
-			// $$ -> print(0); 
 		}
     ;
 

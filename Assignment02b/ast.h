@@ -20,7 +20,7 @@ private:
 
 
 class ExpAst : public abstract_astnode {
-	public:
+    public:
     virtual void print (int level){}
 };
 
@@ -30,7 +30,7 @@ class StmtAst : public abstract_astnode {
 };
 
 class RefAst : public ExpAst {
-	public:
+    public:
     virtual void print (int level){}
 };
 
@@ -39,12 +39,12 @@ class IntConst : public ExpAst {
   public:
     int x;
     IntConst(int n){
-    	x = n;
+        x = n;
     }
 
     void print(int level){
             cout << string(level, '\t');
-    	cout<<"(IntConst "<<x<<")";
+        cout<<"(IntConst "<<x<<")";
     }
 };
 
@@ -53,12 +53,12 @@ class FloatConst : public ExpAst {
   public:
     float x;
     FloatConst(float n){
-    	x = n;
+        x = n;
     }
 
     void print(int level){
             cout << string(level, '\t');
-    	cout<<"(FloatConst "<<x<<")";
+        cout<<"(FloatConst "<<x<<")";
     }
 };
 
@@ -67,12 +67,12 @@ class StringConst : public ExpAst {
   public:
     string x;
     StringConst(string n){
-    	x = n;
+        x = n;
     }
 
     void print(int level){
         cout << string(level, '\t');
-    	cout<<"(StringConst "<<x<<")";
+        cout<<"(StringConst "<<x<<")";
     }
 };
 
@@ -81,12 +81,12 @@ class Identifier : public RefAst {
   public:
     string x;
     Identifier(string n){
-    	x = n;
+        x = n;
     }
 
     void print(int level){
         cout << string(level, '\t');
-    	cout<<"(Id \""<<x<<"\")";
+        cout<<"(Id \""<<x<<"\")";
     }
 };
 
@@ -101,7 +101,7 @@ class Empty : public StmtAst{
 class Return : public StmtAst{
 
     public:
-    	ExpAst *retExp;
+        ExpAst *retExp;
         Return(ExpAst *x){
             retExp = x;
         }
@@ -115,8 +115,8 @@ class Return : public StmtAst{
 class Op1 : public ExpAst{
 
     public:
-    	string operat;
-    	ExpAst *restExp;
+        string operat;
+        ExpAst *restExp;
         Op1(string w, ExpAst *x){
             operat = w;
             restExp = x;
@@ -192,16 +192,14 @@ class Funcall : public ExpAst{
 class Ass : public StmtAst{
 
     public:
-        ExpAst *leftExp;
-        ExpAst *rightExp;
-        Ass(ExpAst *x,ExpAst *y){
-            leftExp = x;
-            rightExp = y;
+        ExpAst *Exp;
+        Ass(ExpAst *x){
+            Exp = x;
         }
 
         void print(int level){
             cout << std::string(level, '\t');
-            cout<<"(Assign_exp " ; leftExp->print(0); rightExp->print(0); cout<<")";
+            cout<<"(Assign_exp " ; Exp->print(0); cout<<")";
         }
 };
 
@@ -305,7 +303,7 @@ class While : public StmtAst{
 class Pointer : public ExpAst{
 
     public:
-    	RefAst *exp;
+        RefAst *exp;
         Pointer(RefAst *x){
             exp = x;
         }
@@ -319,7 +317,7 @@ class Pointer : public ExpAst{
 class Deref : public RefAst{
 
     public:
-    	RefAst *exp;
+        RefAst *exp;
         Deref(RefAst *x){
             exp = x;
         }
