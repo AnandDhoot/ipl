@@ -42,22 +42,30 @@ public:
 };
 class Tb{
 public:
-	string name;
-	map<string,symbol> sym;
+	string name , returnType;
+	Tb* parent;
+	int offset;
+	map<string,symbol*> sym;
 	void print(){
 		cout<<name<<"\n";
-		for(map<string,symbol>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
-			iterator->second.print();
+		for(map<string,symbol*>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
+			iterator->second->print();
 
 		}
 	}
-
+symbol* inScope(string var){
+	if(sym.find(var)!=sym.end())
+		return sym[var];
+	else if(parent!=NULL)
+		return parent->inScope(var);
+	return NULL;
+}
 	void recPrint(){
 		cout<<name<<"\n";
-		for(map<string,symbol>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
-			iterator->second.print();
-			if(iterator->second.symtab!=NULL)
-				iterator->second.symtab->recPrint();
+		for(map<string,symbol*>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
+			iterator->second->print();
+			if(iterator->second->symtab!=NULL)
+				iterator->second->symtab->recPrint();
 
 		}
 	}
