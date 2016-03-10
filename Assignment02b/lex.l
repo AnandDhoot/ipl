@@ -11,6 +11,7 @@ if 														return Parser::IF;
 else 													return Parser::ELSE;
 while 													return Parser::WHILE;
 for 													return Parser::FOR;
+struct													return Parser::STRUCT;
 [1-9][0-9]*												{Parser::d_val__ = std::stoi(matched());   return ParserBase::INT_CONSTANT;}
 0[xX][0-9a-fA-F]*										{Parser::d_val__ = std::stoi(matched());   return ParserBase::INT_CONSTANT;}
 0[bB][01]*												{Parser::d_val__ = std::stoi(matched());   return ParserBase::INT_CONSTANT;}
