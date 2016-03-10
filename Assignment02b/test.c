@@ -4,7 +4,7 @@ int** main1(float a[3][4], int **b, float c)
 	float y2;
 	float **z1;
 
-	x1 = 0;
+	x1=x1+y2;
 }
 struct main
 {
