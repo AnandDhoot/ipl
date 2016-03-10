@@ -19,7 +19,8 @@
 complete_code
 	: translation_unit
 		{
-			// TODO - Add structs. 
+			globTab.name = "Global Symbol Table";
+			// TODO - Check for scope of variables. 
 			globTab.recPrint();
 		}
 	;
@@ -32,7 +33,34 @@ translation_unit
     ;
 
 struct_specifier 
-    : STRUCT IDENTIFIER '{' declaration_list '}' ';'
+    : STRUCT IDENTIFIER 
+    	{
+			if(globTab.inScope($2) != NULL)
+			{
+				cerr << "Redeclaration of symbol " + $2 + " at line " << lineNum << endl; 
+				exit(124);
+			}
+    	}
+    '{' declaration_list '}' ';'
+		{
+			currTab->name = $2;
+			currTab->returnType = "struct " + currTab->name; // Basically, the type
+			symbol* s = new symbol(currTab->name, "struct", "global", currTab->returnType, 0, 0, currTab);
+			globTab.sym[currTab->name] = s;
+			parsingFun = true;
+
+			int totSize = 0;
+			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
+			{
+				totSize += iterator->second->size;
+			}
+			globTab.sym[currTab->name]->size = totSize;
+
+			Tb *newSymTab = new Tb();
+			currTab = newSymTab;
+			currTab->parent = &globTab;
+			offset = 0;
+		}
     ;
 
 function_definition
@@ -40,17 +68,15 @@ function_definition
 		{
 			offset = -4;
 		}
-	compound_statement 
+	compound_statement
 		{
-			globTab.name = "Global Symbol Table";
-			
 			symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
 			globTab.sym[currTab->name] = s;
-			currTab->parent = &globTab;
 			parsingFun = true;
 
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
+			currTab->parent = &globTab;
 			offset = 0;
 		}
 	;
@@ -87,6 +113,15 @@ type_specifier                   // This is the information
     		}
 		}
     | STRUCT IDENTIFIER 
+    	{
+    		type0 = $2;
+    		currSize = globTab.inScope($2)->size;
+    		if(parsingFun)
+    		{
+    			currTab->returnType = type0;
+    			parsingFun = false;
+    		}
+    	}
     ;
 
 fun_declarator
@@ -94,7 +129,7 @@ fun_declarator
 		{
 			if(globTab.inScope($1) != NULL)
 			{
-				cerr << "Redeclaration of function name " + $1 + " at line " << lineNum << endl; 
+				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
 			}
 			currTab->name = $1;
@@ -109,7 +144,7 @@ fun_declarator
 		{
 			if(globTab.inScope($1) != NULL)
 			{
-				cerr << "Redeclaration of function name " + $1 + " at line " << lineNum << endl; 
+				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
 			}
 			currTab->name = $1;
@@ -159,8 +194,8 @@ declarator
 			}
 			else
 			{
-				// Check if primary expression is INT
-				cout << "ERORR AND ABORT" << endl;
+				cerr << "Expected constant integer at line " << lineNum << endl;
+				exit(120);
 			}
 				
 		}

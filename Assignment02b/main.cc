@@ -16,7 +16,7 @@ int maxParamOffset = 0;
 
 int main (int argc, char** arg)
 {
-
+	currTab->parent = &globTab;
 	Parser parser;
 	parser.parse();
 }
