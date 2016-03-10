@@ -271,7 +271,11 @@ expression
 		}	
     |  l_expression '=' expression 	
 		{
-			$$ = new Assign($1, $3);
+			if($1->type!=$3->type)
+			$$ = new Assign($1, $3,$1->type);
+			else
+			$$ = new Assign($1, $3,"");
+			$$->type="int";
 		}	
     ;
 
@@ -283,6 +287,7 @@ logical_or_expression            // The usual hierarchy that starts here...
     | logical_or_expression OR_OP logical_and_expression
 		{
 			$$ = new Op2("OR", $1, $3);
+			$$->type="int";
 		}	
 	;
 
@@ -294,6 +299,7 @@ logical_and_expression
     | logical_and_expression AND_OP equality_expression 
 		{
 			$$ = new Op2("AND", $1, $3);
+			$$->type="int";
 		}	
 	;
 
@@ -305,10 +311,12 @@ equality_expression
     | equality_expression EQ_OP relational_expression 
 		{
 			$$ = new Op2("EQ", $1, $3);
+			$$->type="int";
 		}	
 	| equality_expression NE_OP relational_expression
 		{
 			$$ = new Op2("NE", $1, $3);
+			$$->type="int";
 		}
 	;
 
@@ -319,19 +327,48 @@ relational_expression
 		}	
     | relational_expression '<' additive_expression 
 		{
-			$$ = new Op2("LT", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("LT-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("LT-INT", $1, $3);
+			}
 		}
 	| relational_expression '>' additive_expression 
 		{
-			$$ = new Op2("GT", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("GT-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("GT-INT", $1, $3);
+			}
 		}
 	| relational_expression LE_OP additive_expression 
 		{
-			$$ = new Op2("LE", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("LE-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("LE-INT", $1, $3);
+			}
 		}
     | relational_expression GE_OP additive_expression 
 		{
-			$$ = new Op2("GE", $1, $3);
+
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("GE-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("GE-INT", $1, $3);
+			}
 		}
 	;
 
@@ -342,11 +379,25 @@ additive_expression
 		}	
 	| additive_expression '+' multiplicative_expression
 		{
-			$$ = new Op2("Plus", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("Plus-FT", $1, $3);;
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("Plus-INT", $1, $3);
+			}
 		} 
 	| additive_expression '-' multiplicative_expression 
 		{
-			$$ = new Op2("Minus", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("Minus-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("Minus-INT", $1, $3);
+			}
 		}
 	;
 
@@ -358,10 +409,25 @@ multiplicative_expression
 	| multiplicative_expression '*' unary_expression
 		{
 			$$ = new Op2("Multiply", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("Multiply-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("Multiply-INT", $1, $3);
+			}
 		} 
 	| multiplicative_expression '/' unary_expression 
 		{
-			$$ = new Op2("Divide", $1, $3);
+			if($1->type=="float"||$3->type=="float"){
+				$$->type=="float";
+				$$ = new Op2("Divide-FT", $1, $3);
+			}
+			else{
+				$$->type=="int";
+				$$ = new Op2("Divide-INT", $1, $3);
+			}
 		}
 	;
 
@@ -373,6 +439,7 @@ unary_expression
 	| unary_operator postfix_expression 
 		{
 			$$ = new Op1($1, $2);
+			$$->type=$2->type;
 		}			
 	;
 
@@ -384,14 +451,17 @@ postfix_expression
     | IDENTIFIER '(' ')' 
     	{
     		$$ = new Funcall(new Identifier($1), new list<ExpAst *>());
+    		$$->type=globTab.sym[$1]->type;
     	}		
 	| IDENTIFIER '(' expression_list ')' 
     	{
     		$$ = new Funcall(new Identifier($1), $3);
+    		$$->type=globTab.sym[$1]->type;
     	}
 	| l_expression INC_OP
 		{
 			$$ = new Op1("PlusPlus", $1);
+			$$->type=$1->type;
 		}		
 	;
 
@@ -399,10 +469,12 @@ l_expression
     : IDENTIFIER
 	    {
 	    	$$ = new Identifier($1);
+	    	$$->type=currTab->inScope($1)->type;
 	    }
     | l_expression '[' expression ']'
     	{
     		$$ = new ArrayRef($1,$3);
+    		//$$->type=currTab->inScope($1)->type;
     	}
     | '*' l_expression
 		{

@@ -5,7 +5,6 @@
 #include "st.h"
 using namespace std;
 
-
 extern Tb globTab;
 extern Tb* currTab;
 extern string currIdentifier;
@@ -20,6 +19,12 @@ extern int maxParamOffset;
 class abstract_astnode
 {
 public:
+    string name;
+    bool vartype; //var/fun
+    string scope; // param/local/global
+    string type;
+    int size;
+    int offset;
 virtual void print (int level) = 0;
 // virtual std::string generate_code(const symbolTable&) = 0;
 // virtual basic_types getType() = 0;
@@ -34,6 +39,7 @@ private:
 
 class ExpAst : public abstract_astnode {
     public:
+    string type;
     virtual void print (int level){}
 };
 
@@ -44,6 +50,7 @@ class StmtAst : public abstract_astnode {
 
 class RefAst : public ExpAst {
     public:
+
     virtual void print (int level){}
 };
 
@@ -53,6 +60,7 @@ class IntConst : public ExpAst {
     int x;
     IntConst(int n){
         x = n;
+        type="int";
     }
 
     void print(int level){
@@ -67,6 +75,7 @@ class FloatConst : public ExpAst {
     float x;
     FloatConst(float n){
         x = n;
+        type="float";
     }
 
     void print(int level){
@@ -163,15 +172,21 @@ class Assign : public ExpAst{
 
     public:
         RefAst *lExp;
+        string type;
         ExpAst *rightExp;
-        Assign(RefAst *x,ExpAst *y){
+        Assign(RefAst *x,ExpAst *y,string typ){
             lExp = x;
             rightExp = y;
+            type=typ;
         }
 
         void print(int level){
             cout << string(level, '\t');
-            cout<<"(Assign "; lExp->print(0); rightExp->print(0); cout<<")";
+            if(type==""){
+                cout<<"(Assign "; lExp->print(0);rightExp->print(0); cout<<")";
+            }
+            else
+            cout<<"(Assign "; lExp->print(0);cout<<type<<"("; rightExp->print(0); cout<<") )";
         }
 };
 
