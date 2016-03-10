@@ -19,7 +19,7 @@
 complete_code
 	: translation_unit
 		{
-			// TODO - Add offsets. 
+			// TODO - Add structs. 
 			globTab.recPrint();
 		}
 	;
@@ -36,7 +36,11 @@ struct_specifier
     ;
 
 function_definition
-	: type_specifier fun_declarator compound_statement 
+	: type_specifier fun_declarator 
+		{
+			offset = -4;
+		}
+	compound_statement 
 		{
 			globTab.name = "Global Symbol Table";
 			
@@ -47,6 +51,7 @@ function_definition
 
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
+			offset = 0;
 		}
 	;
 
@@ -87,11 +92,28 @@ type_specifier                   // This is the information
 fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
 		{
+			if(globTab.inScope($1) != NULL)
+			{
+				cerr << "Redeclaration of function name " + $1 + " at line " << lineNum << endl; 
+				exit(125);
+			}
 			currTab->name = $1;
+			offset = 0;
+
+			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
+			{
+				iterator->second->offset = maxParamOffset - iterator->second->offset;
+			}
 		}
 	| IDENTIFIER '(' ')' 
 		{
+			if(globTab.inScope($1) != NULL)
+			{
+				cerr << "Redeclaration of function name " + $1 + " at line " << lineNum << endl; 
+				exit(125);
+			}
 			currTab->name = $1;
+			offset = 0;
 		}
     | '*' fun_declarator 
     	{
@@ -111,15 +133,21 @@ parameter_declaration
 			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
 				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
 			currTab->sym[currIdentifier]->scope = "param";
+			offset += currTab->sym[currIdentifier]->size;
+			maxParamOffset = offset;
 		}
     ;
 
 declarator
 	: IDENTIFIER 
 		{
-
+			if(currTab->inScope($1) != NULL)
+			{
+				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
+				exit(124);
+			}
 			currIdentifier = $1;
-			symbol* s = new symbol($1, "var", "local", type0, currSize, 0, NULL);
+			symbol* s = new symbol($1, "var", "local", type0, currSize, offset, NULL);
 			currTab->sym[$1] = s;
 		}
 	| declarator '[' primary_expression']'
@@ -455,7 +483,17 @@ declaration
 
 declarator_list
 	: declarator
+		{
+			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
+				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
+			offset -= currTab->sym[currIdentifier]->size;
+		}
 	| declarator_list ',' declarator 
+		{
+			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
+				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
+			offset -= currTab->sym[currIdentifier]->size;
+		}
  	;
 
 

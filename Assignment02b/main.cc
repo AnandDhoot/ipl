@@ -11,6 +11,8 @@ int value = 0;
 bool parsingFun = true;
 int currSize = 0;
 bool isIntConst = false;
+int offset = 4;
+int maxParamOffset = 0;
 
 int main (int argc, char** arg)
 {

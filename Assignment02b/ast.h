@@ -14,6 +14,8 @@ extern int value;
 extern int currSize;
 extern bool parsingFun;
 extern bool isIntConst;
+extern int offset;
+extern int maxParamOffset;
 
 class abstract_astnode
 {

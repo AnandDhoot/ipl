@@ -1,5 +1,5 @@
 
-int** main(float x[3][4], int **y, float z)
+int** main1(float a[3][4], int **b, float c)
 {
 	int x1;
 	float y2;
@@ -7,9 +7,9 @@ int** main(float x[3][4], int **y, float z)
 
 	x1 = 0;
 }
-int main1(float x[3][4], int **y, float z)
+int main2(float a[3][4], int **b, float c)
 {
-	int x1;
+	int x1[3];
 	float y2;
 	float **z1;
 
