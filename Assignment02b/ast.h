@@ -2,7 +2,18 @@
 #include <stdio.h>
 #include <string>
 #include <list>
+#include "st.h"
 using namespace std;
+
+
+extern Tb globTab;
+extern Tb* currTab;
+extern string currIdentifier;
+extern string type0;
+extern int value;
+extern int currSize;
+extern bool parsingFun;
+extern bool isIntConst;
 
 class abstract_astnode
 {
@@ -57,7 +68,7 @@ class FloatConst : public ExpAst {
     }
 
     void print(int level){
-            cout << string(level, '\t');
+        cout << string(level, '\t');
         cout<<"(FloatConst "<<x<<")";
     }
 };

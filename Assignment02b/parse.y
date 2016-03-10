@@ -16,9 +16,16 @@
 
 %%
 
+complete_code
+	: translation_unit
+		{
+			// TODO - Add offsets. 
+			globTab.recPrint();
+		}
+	;
 
 translation_unit 
-    :  struct_specifier
+    : struct_specifier
  	| function_definition 
  	| translation_unit function_definition 
     | translation_unit struct_specifier
@@ -30,20 +37,67 @@ struct_specifier
 
 function_definition
 	: type_specifier fun_declarator compound_statement 
+		{
+			globTab.name = "Global Symbol Table";
+			
+			symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
+			globTab.sym[currTab->name] = s;
+			currTab->parent = &globTab;
+			parsingFun = true;
+
+			Tb *newSymTab = new Tb();
+			currTab = newSymTab;
+		}
 	;
 
 type_specifier                   // This is the information 
     : VOID 	                 // that gets associated with each identifier
+    	{
+    		type0 = "void";
+    		currSize = 0;
+    		if(parsingFun)
+    		{
+    			currTab->returnType = type0;
+    			parsingFun = false;
+    		}
+		}
     | INT   
+    	{
+    		type0 = "int";
+    		currSize = 4;
+    		if(parsingFun)
+    		{
+    			currTab->returnType = type0;
+    			parsingFun = false;
+    		}
+    	}
 	| FLOAT 
+		{	
+			type0 = "float";
+			currSize = 8;
+    		if(parsingFun)
+    		{
+    			currTab->returnType = type0;
+    			parsingFun = false;
+    		}
+		}
     | STRUCT IDENTIFIER 
     ;
 
 fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
+		{
+			currTab->name = $1;
+		}
 	| IDENTIFIER '(' ')' 
-    | '*' fun_declarator  //The * is associated with the 
-	;                      //function name
+		{
+			currTab->name = $1;
+		}
+    | '*' fun_declarator 
+    	{
+   			currTab->returnType += "*";
+    	}
+	;
 
 
 parameter_list
@@ -53,12 +107,42 @@ parameter_list
 
 parameter_declaration
 	: type_specifier declarator 
+		{
+			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
+				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
+			currTab->sym[currIdentifier]->scope = "param";
+		}
     ;
 
 declarator
 	: IDENTIFIER 
-	| declarator '[' primary_expression']' // check separately that it is a constant
+		{
+
+			currIdentifier = $1;
+			symbol* s = new symbol($1, "var", "local", type0, currSize, 0, NULL);
+			currTab->sym[$1] = s;
+		}
+	| declarator '[' primary_expression']'
+		{
+			if(isIntConst)
+			{
+				currTab->sym[currIdentifier]->dimensions.push_back(value);
+				isIntConst = false;
+			}
+			else
+			{
+				// Check if primary expression is INT
+				cout << "ERORR AND ABORT" << endl;
+			}
+				
+		}
     | '*' declarator 
+    	{
+    		currSize = 4;
+
+			currTab->sym[currIdentifier]->type += "*";
+			currTab->sym[currIdentifier]->size = 4;
+    	}
     ;
 
 primary_expression 
@@ -69,6 +153,8 @@ primary_expression
     | INT_CONSTANT 
 	    {
 	    	$$ = new IntConst($1);
+	    	value = $1;
+	    	isIntConst = true;
 	    }
     | FLOAT_CONSTANT
 	    {
@@ -118,7 +204,7 @@ statement_list
 statement
     : '{' statement_list '}' 
     	{
-    		$$ = new Seq($2);	
+    		$$ = new Seq($2);
     	}
     | selection_statement
 		{
