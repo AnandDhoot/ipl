@@ -18,5 +18,5 @@ int main2(int **a1, struct main b[3][4], float c)
 	float y2;
 	float **z1;
 
-	x11[1] = 0;
+	x112[1] = 0;
 }
