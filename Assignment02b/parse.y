@@ -704,13 +704,46 @@ l_expression
     		}
 		}
     | l_expression '.' IDENTIFIER
-		{
-			$$ = new Member($1, new Identifier($3));
-			
+		{	RefAst* temp=$1;
+			string id=$3;
+			$$ = new Member($1, new Identifier(id));
+			symbol* t = globTab.inScope(temp->type);
+			cerr<<temp->type;
+			if(t==NULL){
+				cerr<<"Member not defined for "<<temp->type<<lineNum;
+				exit(2);
+			}
+			symbol* mem=t->symtab->inScope(id);
+			if(mem==NULL){
+				cerr<<" No such Member"<<id<<lineNum;
+				exit(2);
+			}
+			$$->type= mem->starType() ; 
+			$$->base_type=mem->type;
+
 		}
     | l_expression PTR_OP IDENTIFIER
 		{
+			RefAst* temp=$1;
 			$$ = new Arrow($1, new Identifier($3));
+			if(temp->base_type[temp->base_type.size()-1]=='*'){
+			symbol* t = globTab.inScope(temp->type.substr(0,temp->type.size()-1));
+			if(t==NULL){
+				cerr<<"PTR not defined for "<<temp->type<<lineNum;
+				exit(2);
+			}
+			symbol* mem=t->symtab->inScope($3);
+			if(mem==NULL){
+				cerr<<" No such Member"<<$3<<lineNum;
+				exit(2);
+			}
+			$$->type= mem->starType() ; 
+			$$->base_type=mem->type;}
+			 else{
+    			cerr<<"Arbit Pointer OP error\n";
+    			exit(3);
+    		}
+
 		}
     | '(' l_expression ')'	
     	{
