@@ -572,19 +572,41 @@ l_expression
     : IDENTIFIER
 	    {
 	    	$$ = new Identifier($1);
-	    	$$->type=currTab->inScope($1)->type;
+	    	$$->type=currTab->inScope($1)->starType();
+	    	$$->base_type=currTab->inScope($1)->type;
 	    }
     | l_expression '[' expression ']'
     	{
+    		RefAst* temp=  $1;
     		$$ = new ArrayRef($1,$3);
+
+    		if(temp->type[temp->type.size()-1]=='*'){
+    		$$->type=temp->type.substr(0,temp->type.size()-1);
+    		$$->base_type=temp->base_type;
+    	}
+    		else{
+    			cerr<<"Arbit Array acess error\n";
+    			exit(3);
+    		}
+
     	}
     | '*' l_expression
 		{
+			RefAst* temp=  $2;
 			$$ = new Deref($2);
+    		if(temp->base_type[temp->base_type.size()-1]=='*'){
+    		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
+    		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
+    	}
+    		else{
+    			cerr<<"Arbit Pointer Deref error\n";
+    			exit(3);
+    		}
 		}
     | l_expression '.' IDENTIFIER
 		{
 			$$ = new Member($1, new Identifier($3));
+			
 		}
     | l_expression PTR_OP IDENTIFIER
 		{

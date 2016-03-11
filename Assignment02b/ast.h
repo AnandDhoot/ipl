@@ -40,6 +40,7 @@ private:
 class ExpAst : public abstract_astnode {
     public:
     string type;
+    string base_type;
     virtual void print (int level){}
 };
 

@@ -13,8 +13,15 @@ public:
 	int size;
 	int offset;
 	vector<int> dimensions;
-	Tb* symtab; // if of type struct
 
+	Tb* symtab; // if of type struct
+	string starType(){
+		string temp=type;
+		for(int i=0;i<dimensions.size();i++)
+			temp+="*";
+		return temp;
+
+	}
 	symbol(	string name1,
 	string vartype1, //var/fun
 	string scope1, // param/local/global

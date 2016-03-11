@@ -1,10 +1,9 @@
-int** main1(float a[3][4], int **b, float c)
+int** main1(float *a[3][4], int **b, float c)
 {
 	int x1;
 	float y2;
 	float **z1;
-
-	x1=x1+y2;
+	**a[1][1]=**z1;
 }
 struct main
 {
