@@ -307,9 +307,9 @@ expression
     |  l_expression '=' expression 	
 		{
 			if($1->type!=$3->type)
-			$$ = new Assign($1, new Op1("TO-"+$1->type,$3));
+				$$ = new Assign($1, new Op1("TO-"+$1->type,$3));
 			else
-			$$ = new Assign($1, $3);
+				$$ = new Assign($1, $3);
 			$$->type="int";
 		}	
     ;
@@ -345,12 +345,30 @@ equality_expression
 		}	 
     | equality_expression EQ_OP relational_expression 
 		{
-			$$ = new Op2("EQ", $1, $3);
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("EQ", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("EQ", $1, new Op1("TO-"+$1->type,$3));
+			}
+			else
+				$$ = new Op2("EQ", $1, $3);
+
 			$$->type="int";
 		}	
 	| equality_expression NE_OP relational_expression
 		{
-			$$ = new Op2("NE", $1, $3);
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("NE", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("NE", $1, new Op1("TO-"+$1->type,$3));
+			}
+			else
+				$$ = new Op2("NE", $1, $3);
+
 			$$->type="int";
 		}
 	;
@@ -362,48 +380,67 @@ relational_expression
 		}	
     | relational_expression '<' additive_expression 
 		{
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("LT-FT", $1, $3);
+			$$->type=="int";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("LT-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("LT-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
-				$$->type=="int";
+			else if($1->type == "float")
+				$$ = new Op2("LT-FLOAT", $1, $3);
+			else
 				$$ = new Op2("LT-INT", $1, $3);
-			}
 		}
 	| relational_expression '>' additive_expression 
 		{
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("GT-FT", $1, $3);
+			$$->type=="int";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("GT-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("GT-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
-				$$->type=="int";
+			else if($1->type == "float")
+				$$ = new Op2("GT-FLOAT", $1, $3);
+			else
 				$$ = new Op2("GT-INT", $1, $3);
-			}
 		}
 	| relational_expression LE_OP additive_expression 
 		{
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("LE-FT", $1, $3);
+			$$->type=="int";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("LE-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("LE-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
-				$$->type=="int";
+			else if($1->type == "float")
+				$$ = new Op2("LE-FLOAT", $1, $3);
+			else
 				$$ = new Op2("LE-INT", $1, $3);
-			}
 		}
     | relational_expression GE_OP additive_expression 
 		{
-
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("GE-FT", $1, $3);
+			$$->type=="int";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("GE-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("GE-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
-				$$->type=="int";
+			else if($1->type == "float")
+				$$ = new Op2("GE-FLOAT", $1, $3);
+			else
 				$$ = new Op2("GE-INT", $1, $3);
-			}
 		}
 	;
 
@@ -414,22 +451,38 @@ additive_expression
 		}	
 	| additive_expression '+' multiplicative_expression
 		{
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("Plus-FT", $1, $3);;
+			$$->type=="float";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("Plus-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("Plus-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
+			else if($1->type == "float")
+				$$ = new Op2("Plus-FLOAT", $1, $3);
+			else
+			{
 				$$->type=="int";
 				$$ = new Op2("Plus-INT", $1, $3);
 			}
 		} 
 	| additive_expression '-' multiplicative_expression 
 		{
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("Minus-FT", $1, $3);
+			$$->type=="float";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("Minus-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("Minus-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
+			else if($1->type == "float")
+				$$ = new Op2("Minus-FLOAT", $1, $3);
+			else
+			{
 				$$->type=="int";
 				$$ = new Op2("Minus-INT", $1, $3);
 			}
@@ -443,23 +496,38 @@ multiplicative_expression
 		}	
 	| multiplicative_expression '*' unary_expression
 		{
-			$$ = new Op2("Multiply", $1, $3);
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("Multiply-FT", $1, $3);
+			$$->type=="float";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("Multiply-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("Multiply-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
+			else if($1->type == "float")
+				$$ = new Op2("Multiply-FLOAT", $1, $3);
+			else
+			{
 				$$->type=="int";
 				$$ = new Op2("Multiply-INT", $1, $3);
 			}
 		} 
 	| multiplicative_expression '/' unary_expression 
 		{
-			if($1->type=="float"||$3->type=="float"){
-				$$->type=="float";
-				$$ = new Op2("Divide-FT", $1, $3);
+			$$->type=="float";
+			
+			if($1->type!=$3->type)
+			{
+				if($1->type == "int")
+					$$ = new Op2("Divide-FLOAT", new Op1("TO-"+$3->type,$1), $3);
+				else
+					$$ = new Op2("Divide-FLOAT", $1, new Op1("TO-"+$1->type,$3));
 			}
-			else{
+			else if($1->type == "float")
+				$$ = new Op2("Divide-FLOAT", $1, $3);
+			else
+			{
 				$$->type=="int";
 				$$ = new Op2("Divide-INT", $1, $3);
 			}
@@ -509,7 +577,6 @@ l_expression
     | l_expression '[' expression ']'
     	{
     		$$ = new ArrayRef($1,$3);
-    		//$$->type=currTab->inScope($1)->type;
     	}
     | '*' l_expression
 		{
