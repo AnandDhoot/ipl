@@ -675,6 +675,10 @@ l_expression
     : IDENTIFIER
 	    {
 	    	$$ = new Identifier($1);
+	    	if(currTab->inScope($1)==NULL){
+	    		cerr<<"Scope Error"<<lineNum;
+	    		exit(3);
+	    	}
 	    	$$->type=currTab->inScope($1)->starType();
 	    	$$->base_type=currTab->inScope($1)->type;
 	    }
