@@ -306,11 +306,33 @@ expression
 		}	
     |  l_expression '=' expression 	
 		{
-			if($1->type!=$3->type)
-				$$ = new Assign($1, new Op1("TO-"+$1->type,$3));
+			RefAst* temp = $1;
+			if(temp->type[temp->type.size()-1] == '*' && $3->type[$3->type.size()-1] == '*')
+			{
+				if(temp->type == $3->type)
+				{
+					$$ = new Assign(temp, $3);
+					$$->type = temp->type;
+				}
+				else
+				{
+					cerr << "Incorrect types at line " << lineNum << endl;
+					exit(112);
+				}
+			}
+			else if(temp->type[temp->type.size()-1] == '*' || $3->type[$3->type.size()-1] == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			else
-				$$ = new Assign($1, $3);
-			$$->type="int";
+			{
+				if(temp->type!=$3->type)
+					$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
+				else
+					$$ = new Assign(temp, $3);
+				$$->type="int";
+			}
 		}	
     ;
 
@@ -321,6 +343,12 @@ logical_or_expression            // The usual hierarchy that starts here...
 		}	
     | logical_or_expression OR_OP logical_and_expression
 		{
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
+
 			$$ = new Op2("OR", $1, $3);
 			$$->type="int";
 		}	
@@ -333,6 +361,11 @@ logical_and_expression
 		}	
     | logical_and_expression AND_OP equality_expression 
 		{
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			$$ = new Op2("AND", $1, $3);
 			$$->type="int";
 		}	
@@ -345,6 +378,11 @@ equality_expression
 		}	 
     | equality_expression EQ_OP relational_expression 
 		{
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			if($1->type!=$3->type)
 			{
 				if($1->type == "int")
@@ -359,6 +397,11 @@ equality_expression
 		}	
 	| equality_expression NE_OP relational_expression
 		{
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			if($1->type!=$3->type)
 			{
 				if($1->type == "int")
@@ -380,7 +423,12 @@ relational_expression
 		}	
     | relational_expression '<' additive_expression 
 		{
-			$$->type=="int";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
+
 			
 			if($1->type!=$3->type)
 			{
@@ -393,10 +441,15 @@ relational_expression
 				$$ = new Op2("LT-FLOAT", $1, $3);
 			else
 				$$ = new Op2("LT-INT", $1, $3);
+			$$->type=="int";
 		}
 	| relational_expression '>' additive_expression 
 		{
-			$$->type=="int";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			
 			if($1->type!=$3->type)
 			{
@@ -409,10 +462,15 @@ relational_expression
 				$$ = new Op2("GT-FLOAT", $1, $3);
 			else
 				$$ = new Op2("GT-INT", $1, $3);
+			$$->type=="int";
 		}
 	| relational_expression LE_OP additive_expression 
 		{
-			$$->type=="int";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			
 			if($1->type!=$3->type)
 			{
@@ -425,10 +483,15 @@ relational_expression
 				$$ = new Op2("LE-FLOAT", $1, $3);
 			else
 				$$ = new Op2("LE-INT", $1, $3);
+			$$->type=="int";
 		}
     | relational_expression GE_OP additive_expression 
 		{
-			$$->type=="int";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			
 			if($1->type!=$3->type)
 			{
@@ -441,6 +504,8 @@ relational_expression
 				$$ = new Op2("GE-FLOAT", $1, $3);
 			else
 				$$ = new Op2("GE-INT", $1, $3);
+
+			$$->type=="int";
 		}
 	;
 
@@ -451,7 +516,11 @@ additive_expression
 		}	
 	| additive_expression '+' multiplicative_expression
 		{
-			$$->type=="float";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			
 			if($1->type!=$3->type)
 			{
@@ -459,18 +528,27 @@ additive_expression
 					$$ = new Op2("Plus-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Plus-FLOAT", $1, new Op1("TO-"+$1->type,$3));
+				$$->type=="float";
 			}
 			else if($1->type == "float")
+			{
 				$$ = new Op2("Plus-FLOAT", $1, $3);
+				$$->type=="float";
+			}
 			else
 			{
-				$$->type=="int";
 				$$ = new Op2("Plus-INT", $1, $3);
+				$$->type=="int";
 			}
+
 		} 
 	| additive_expression '-' multiplicative_expression 
 		{
-			$$->type=="float";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			
 			if($1->type!=$3->type)
 			{
@@ -478,14 +556,19 @@ additive_expression
 					$$ = new Op2("Minus-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Minus-FLOAT", $1, new Op1("TO-"+$1->type,$3));
+				$$->type=="float";
 			}
 			else if($1->type == "float")
+			{
 				$$ = new Op2("Minus-FLOAT", $1, $3);
+				$$->type=="float";
+			}
 			else
 			{
-				$$->type=="int";
 				$$ = new Op2("Minus-INT", $1, $3);
+				$$->type=="int";
 			}
+
 		}
 	;
 
@@ -496,26 +579,39 @@ multiplicative_expression
 		}	
 	| multiplicative_expression '*' unary_expression
 		{
-			$$->type=="float";
-			
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
+
 			if($1->type!=$3->type)
 			{
 				if($1->type == "int")
 					$$ = new Op2("Multiply-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Multiply-FLOAT", $1, new Op1("TO-"+$1->type,$3));
+				$$->type=="float";
 			}
 			else if($1->type == "float")
+			{
 				$$ = new Op2("Multiply-FLOAT", $1, $3);
+				$$->type=="float";
+			}
 			else
 			{
-				$$->type=="int";
 				$$ = new Op2("Multiply-INT", $1, $3);
+				$$->type=="int";
 			}
 		} 
 	| multiplicative_expression '/' unary_expression 
 		{
-			$$->type=="float";
+			if($1->type.back() == '*' || $3->type.back() == '*')
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
+
 			
 			if($1->type!=$3->type)
 			{
@@ -523,13 +619,17 @@ multiplicative_expression
 					$$ = new Op2("Divide-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Divide-FLOAT", $1, new Op1("TO-"+$1->type,$3));
+				$$->type=="float";
 			}
 			else if($1->type == "float")
+			{
 				$$ = new Op2("Divide-FLOAT", $1, $3);
+				$$->type=="float";
+			}
 			else
 			{
-				$$->type=="int";
 				$$ = new Op2("Divide-INT", $1, $3);
+				$$->type=="int";
 			}
 		}
 	;
