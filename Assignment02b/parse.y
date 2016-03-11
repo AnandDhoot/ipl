@@ -307,12 +307,15 @@ expression
     |  l_expression '=' expression 	
 		{
 			RefAst* temp = $1;
-			if(temp->type[temp->type.size()-1] == '*' && $3->type[$3->type.size()-1] == '*')
+			if(temp->type == "void*" && $3->type[$3->type.size()-1] == '*')
+			{
+				$$ = new Assign(temp, $3);
+			}
+			else if(temp->type[temp->type.size()-1] == '*' && $3->type[$3->type.size()-1] == '*')
 			{
 				if(temp->type == $3->type)
 				{
 					$$ = new Assign(temp, $3);
-					$$->type = temp->type;
 				}
 				else
 				{
@@ -331,8 +334,8 @@ expression
 					$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
 				else
 					$$ = new Assign(temp, $3);
-				$$->type="int";
 			}
+			$$->type = "int";
 		}	
     ;
 

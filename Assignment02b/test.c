@@ -3,8 +3,13 @@ int** main1(float *a[3][4], int **b, float c)
 	int x1[10];
 	float y2;
 	float **z1;
+	void *a11;
+	void **b1;
 
 	x1[2] = x1[1] + **z1;
+
+	a11 = *b1;
+	b1 = &a11;
 }
 struct main
 {
