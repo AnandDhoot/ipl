@@ -172,21 +172,15 @@ class Assign : public ExpAst{
 
     public:
         RefAst *lExp;
-        string type;
         ExpAst *rightExp;
-        Assign(RefAst *x,ExpAst *y,string typ){
+        Assign(RefAst *x,ExpAst *y){
             lExp = x;
             rightExp = y;
-            type=typ;
         }
 
         void print(int level){
             cout << string(level, '\t');
-            if(type==""){
                 cout<<"(Assign "; lExp->print(0);rightExp->print(0); cout<<")";
-            }
-            else
-            cout<<"(Assign "; lExp->print(0);cout<<type<<"("; rightExp->print(0); cout<<") )";
         }
 };
 

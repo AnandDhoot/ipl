@@ -307,9 +307,9 @@ expression
     |  l_expression '=' expression 	
 		{
 			if($1->type!=$3->type)
-			$$ = new Assign($1, $3,$1->type);
+			$$ = new Assign($1, new Op1("TO-"+$1->type,$3));
 			else
-			$$ = new Assign($1, $3,"");
+			$$ = new Assign($1, $3);
 			$$->type="int";
 		}	
     ;
