@@ -33,15 +33,13 @@ translation_unit
 
 struct_specifier 
     : STRUCT IDENTIFIER 
-    	{
+    '{' declaration_list '}' ';'
+		{
 			if(globTab.inScope($2) != NULL)
 			{
 				cerr << "Redeclaration of symbol " + $2 + " at line " << lineNum << endl; 
 				exit(124);
 			}
-    	}
-    '{' declaration_list '}' ';'
-		{
 			currTab->name = $2;
 			currTab->returnType = "struct " + currTab->name; // Basically, the type
 			symbol* s = new symbol(currTab->name, "struct", "global", currTab->returnType, 0, 0, currTab);
@@ -118,6 +116,7 @@ type_specifier                   // This is the information
     	{
     		type0 = $2;
     		type1 = $2;
+    		cout<<$2;
     		if(globTab.inScope($2)==NULL){
     			cerr<<"Struct used without declaration at "<<lineNum<<endl;
     			exit(0);
