@@ -17,7 +17,7 @@ struct main
 	int* x2;
 	float **dd3;
 };
-int main2(int **a1, struct main b[3][4], float c)
+struct main main2(int **a1, struct main b[3][4], float c)
 {
 	float x11[3];
 	float y2,y3;
