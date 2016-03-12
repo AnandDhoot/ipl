@@ -20,7 +20,6 @@ complete_code
 	: translation_unit
 		{
 			globTab.name = "Global Symbol Table";
-			// TODO - Check for scope of variables. 
 			globTab.recPrint();
 		}
 	;
@@ -293,12 +292,52 @@ statement
 		}	
     | RETURN expression ';'	
     	{
-    		$$ = new Return($2);
-    		$$ -> print(0);
+    		string retType = currTab->returnType;
 
-    		if($2->type != currTab->returnType){
-    			cerr<<"Incorrect Return Type at "<<lineNum<<endl;
-    		}
+			// Code from expression assignment
+			// (With some modifications, ofc!)
+			/********************************/
+			if(retType == "void*" && $2->type[$2->type.size()-1] == '*')
+			{
+				$$ = new Return($2);
+			}
+			else if(retType[retType.size()-1] == '*' && $2->type[$2->type.size()-1] == '*')
+			{
+				if(retType == $2->type)
+				{
+					$$ = new Return($2);
+				}
+				else
+				{
+					cerr << "Incorrect return-type at " << lineNum << endl;
+					exit(12);
+				}
+			}
+			else if(retType[retType.size()-1] == '*' || $2->type[$2->type.size()-1] == '*')
+			{
+				cerr << "Incorrect return-type at " << lineNum << endl;
+				exit(12);
+			}
+			else
+			{
+				if(retType!=$2->type)
+				{
+					// Case to handle assingments of structs. 
+					// currTab->inScope() returns NULL for non-structs
+					if(currTab->inScope(retType)==NULL && currTab->inScope($2->type)==NULL)
+						$$ = new Return(new Op1("TO-"+retType,$2));
+					else
+					{
+						cerr << "Incorrect return-type at " << lineNum << endl;
+						exit(12);
+					}
+				}
+				else
+					$$ = new Return($2);
+			}
+			/********************************/
+
+    		$$ -> print(0);
     	}
     ;
 
@@ -320,8 +359,11 @@ expression
 		}	
     |  l_expression '=' expression 	
 		{
+			// TODO - Handle array assignments
+			// TODO - Copy code for ^ in return, function parameters
+
 			RefAst* temp = $1;
-			if(temp->type!=temp->base_type)//to Combat assignmnets to whole arrays
+			if(temp->type!=temp->base_type) //to Combat assignmnets to whole arrays
 			{
 				cerr << "Incorrect types at line " << lineNum << endl;
 				exit(112);
@@ -349,8 +391,17 @@ expression
 			}
 			else
 			{
-				if(temp->type!=$3->type) // TODO check if one of them is struct
-					$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
+				if(temp->type!=$3->type)
+				{
+					// Case to handle assingments of structs. 
+					if(currTab->inScope(temp->type)==NULL && currTab->inScope($3->type)==NULL)
+						$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
+					else
+					{
+						cerr << "Incorrect types at line " << lineNum << endl;
+						exit(112);
+					}
+				}
 				else
 					$$ = new Assign(temp, $3);
 			}
@@ -712,14 +763,113 @@ postfix_expression
 		{
 			$$ = $1;
 		}	 				
-    | IDENTIFIER '(' ')' 
+    | IDENTIFIER '(' ')' 	
     	{
+    		if(globTab.inScope($1) == NULL)
+    		{
+    			cerr << "Function definition not found. Error at line " << lineNum << endl;
+    			exit(1243);
+    		}
+
+    		vector<symbol*> symArr;
+    		symArr = ((globTab.inScope($1))->symtab)->sort_byoffset();
+    		if(symArr.size() > 0 && symArr[0]->scope == "param")
+    		{
+    			cerr << "No arguments supplied. Error at line " << lineNum << endl;
+    			exit(1242);
+    		}
+
     		$$ = new Funcall(new Identifier($1), new list<ExpAst *>());
     		$$->type=globTab.sym[$1]->type;
     		$$->isConst=1;
     	}		
 	| IDENTIFIER '(' expression_list ')' 
     	{
+    		if(globTab.inScope($1) == NULL)
+    		{
+    			cerr << "Function definition not found. Error at line " << lineNum << endl;
+    			exit(1243);
+    		}
+    		
+    		vector<symbol*> symArr;
+    		symArr = ((globTab.inScope($1))->symtab)->sort_byoffset();
+    		int countParams = 0;
+    		for(int i=0; i<symArr.size(); i++)
+    		{
+    			if(symArr[i]->scope == "param")
+    				countParams ++;
+    			else
+    				break;
+    		}
+
+    		if(countParams > 0 && ((list<ExpAst *>*)$3)->size() == countParams)
+    		{
+    			int i = -1;
+    			while(true)
+	    		{
+	    			i++;
+	    			if(i >= countParams)
+	    				break;
+
+	    			ExpAst* argum = ((list<ExpAst *>*)$3)->front();
+    				((list<ExpAst *>*)$3)->pop_front();
+
+	    			// Code from expression assignment
+					// (With some modifications, ofc!)
+	    			/********************************/
+					if(symArr[i]->type == "void*" && argum->type[argum->type.size()-1] == '*')
+					{
+						// $$ = new Assign(symArr[i], argum);
+						continue;
+					}
+					else if(symArr[i]->type[symArr[i]->type.size()-1] == '*' && argum->type[argum->type.size()-1] == '*')
+					{
+						if(symArr[i]->type == argum->type)
+						{
+							// $$ = new Assign(symArr[i], argum);
+							continue;
+						}
+						else
+						{
+							cerr << "Arguments mismatch at " << lineNum << endl;
+							exit(112);
+						}
+					}
+					else if(symArr[i]->type[symArr[i]->type.size()-1] == '*' || argum->type[argum->type.size()-1] == '*')
+					{
+						cerr << "Arguments mismatch at " << lineNum << endl;
+						exit(112);
+					}
+					else
+					{
+						if(symArr[i]->type!=argum->type)
+						{
+							// Case to handle assingments of structs. 
+							if(currTab->inScope(symArr[i]->type)==NULL && currTab->inScope(argum->type)==NULL)
+							{
+								argum = new Op1("TO-"+symArr[i]->type,argum);
+								continue;
+							}
+							else
+							{
+								cerr << "Arguments mismatch at " << lineNum << endl;
+								exit(112);
+							}
+						}
+						else
+							continue;
+							// $$ = new Assign(symArr[i], argum);
+					}
+
+	    			/********************************/
+	    		}
+	    	}
+	    	else
+	    	{
+    			cerr << "Incorrect number of arguments supplied. Error at line " << lineNum << endl;
+    			exit(1241);
+	    	}
+
     		$$ = new Funcall(new Identifier($1), $3);
     		$$->type=globTab.sym[$1]->type;
     		$$->isConst=1;
