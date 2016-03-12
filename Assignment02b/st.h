@@ -1,6 +1,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 class Tb;
@@ -47,6 +48,14 @@ public:
 
 	}
 };
+struct less_than_key
+{
+    inline bool operator() (const symbol *struct1, const symbol *struct2)
+    {
+        return (struct1->offset > struct2->offset);
+    }
+};
+
 class Tb{
 public:
 	string name;
@@ -69,6 +78,14 @@ public:
 
 		}
 	}
+vector<symbol*> sort_byoffset(){
+	vector<symbol*> temp;
+	for(map<string,symbol*>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++)
+		temp.push_back(iterator->second);
+	sort(temp.begin(),temp.end(),less_than_key());
+	return temp;
+
+}
 symbol* inScope(string var){
 	if(sym.find(var)!=sym.end())
 		return sym[var];
@@ -79,9 +96,13 @@ symbol* inScope(string var){
 	void recPrint(){
 		cout << endl << "-----------------------" << endl;
 		cout<<name<<"\t"<<this<<"\n";
-		for(map<string,symbol*>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
-			iterator->second->print();
-		}
+		vector<symbol*> temp=sort_byoffset();
+		for(int i=0; i < temp.size(); i++) {
+			temp[i]->print();
+		}		
+		// for(map<string,symbol*>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
+		// 	iterator->second->print();
+		// }
 		cout << endl << "-----------------------" << endl;
 		for(map<string,symbol*>::iterator iterator = sym.begin(); iterator != sym.end(); iterator++) {
 			if(iterator->second->symtab!=NULL)

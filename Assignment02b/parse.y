@@ -85,6 +85,7 @@ type_specifier                   // This is the information
     : VOID 	                 // that gets associated with each identifier
     	{
     		type0 = "void";
+    		type1 = "void";
     		currSize = 0;
     		if(parsingFun)
     		{
@@ -95,6 +96,7 @@ type_specifier                   // This is the information
     | INT   
     	{
     		type0 = "int";
+    		type1 = "int";
     		currSize = 4;
     		if(parsingFun)
     		{
@@ -105,6 +107,7 @@ type_specifier                   // This is the information
 	| FLOAT 
 		{	
 			type0 = "float";
+			type1 = "float";
 			currSize = 8;
     		if(parsingFun)
     		{
@@ -115,6 +118,7 @@ type_specifier                   // This is the information
     | STRUCT IDENTIFIER 
     	{
     		type0 = $2;
+    		type1 = $2;
     		if(globTab.inScope($2)==NULL){
     			cerr<<"Struct used without declaration at "<<lineNum<<endl;
     			exit(0);
@@ -180,6 +184,7 @@ parameter_declaration
 declarator
 	: IDENTIFIER 
 		{
+
 			if(currTab->inScope($1) != NULL)
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
@@ -208,6 +213,7 @@ declarator
     		currSize = 4;
 
 			currTab->sym[currIdentifier]->type += "*";
+			type0+="*";
 			currTab->sym[currIdentifier]->size = 4;
     	}
     ;
@@ -880,12 +886,22 @@ declaration
 declarator_list
 	: declarator
 		{
+			if(type0=="void"){
+				cerr<<"illegal void type declared at "<<lineNum<<endl;
+				exit(3);
+			}
+			type0=type1;
 			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
 				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
 			offset -= currTab->sym[currIdentifier]->size;
 		}
 	| declarator_list ',' declarator 
 		{
+			if(type0=="void"){
+				cerr<<"illegal void type declared at "<<lineNum<<endl;
+				exit(3);
+			}
+			type0=type1;
 			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
 				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
 			offset -= currTab->sym[currIdentifier]->size;

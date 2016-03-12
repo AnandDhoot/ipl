@@ -8,7 +8,7 @@ using namespace std;
 extern Tb globTab;
 extern Tb* currTab;
 extern string currIdentifier;
-extern string type0;
+extern string type0,type1;
 extern int value;
 extern int currSize;
 extern bool parsingFun;

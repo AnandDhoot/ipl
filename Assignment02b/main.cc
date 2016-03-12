@@ -6,7 +6,7 @@ using namespace std;
 Tb globTab;
 Tb* currTab = new Tb();
 string currIdentifier;
-string type0;
+string type0,type1;
 int value = 0;
 bool parsingFun = true;
 int currSize = 0;

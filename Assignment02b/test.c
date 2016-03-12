@@ -1,11 +1,11 @@
-int** main1(float *a[3][4], int **b, float c)
+int** main1(float *a[3][4], int **d, float c)
 {
 	int x1[10];
 	float y2;
-	float **z1;
+	float **z1,z4;
 	void *a11;
 	void **b1;
-
+	void *abc[123],*def;
 	x1[2] = x1[1] + **z1;
 
 	a11 = *b1;
@@ -25,19 +25,4 @@ int main2(int **a1, struct main b[3][4], float c)
 
 	x11[0] =  (y2 + c);
 	return **a1;
-}
-
-struct hello {
-        int a;
-        float b;
-};
-
-int main7() {
-        int b;
-        int a;
-        struct hello k;  
-
-        a = k;
-
-        return 0;
 }
