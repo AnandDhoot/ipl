@@ -801,6 +801,8 @@ postfix_expression
     				break;
     		}
 
+    		list<ExpAst*> expList;
+
     		if(countParams > 0 && ((list<ExpAst *>*)$3)->size() == countParams)
     		{
     			int i = -1;
@@ -819,6 +821,7 @@ postfix_expression
 					if(symArr[i]->type == "void*" && argum->type[argum->type.size()-1] == '*')
 					{
 						// $$ = new Assign(symArr[i], argum);
+    					expList.push_back(argum);
 						continue;
 					}
 					else if(symArr[i]->type[symArr[i]->type.size()-1] == '*' && argum->type[argum->type.size()-1] == '*')
@@ -826,6 +829,7 @@ postfix_expression
 						if(symArr[i]->type == argum->type)
 						{
 							// $$ = new Assign(symArr[i], argum);
+    						expList.push_back(argum);
 							continue;
 						}
 						else
@@ -846,7 +850,9 @@ postfix_expression
 							// Case to handle assingments of structs. 
 							if(currTab->inScope(symArr[i]->type)==NULL && currTab->inScope(argum->type)==NULL)
 							{
-								argum = new Op1("TO-"+symArr[i]->type,argum);
+								// TODO - Add typecasting to AST
+								// argum = new Op1("TO-"+symArr[i]->type, argum);
+	    						expList.push_back(new Op1("TO-"+symArr[i]->type, argum));
 								continue;
 							}
 							else
@@ -856,8 +862,11 @@ postfix_expression
 							}
 						}
 						else
-							continue;
+						{
 							// $$ = new Assign(symArr[i], argum);
+    						expList.push_back(argum);
+							continue;
+						}
 					}
 
 	    			/********************************/
@@ -869,7 +878,7 @@ postfix_expression
     			exit(1241);
 	    	}
 
-    		$$ = new Funcall(new Identifier($1), $3);
+    		$$ = new Funcall(new Identifier($1), expList);
     		$$->type=globTab.sym[$1]->type;
     		$$->isConst=1;
     	}
