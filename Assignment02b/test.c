@@ -19,9 +19,10 @@ struct main
 };
 int main2(int **a1, struct main b[3][4], float c)
 {
-	int x11[3];
-	float y2;
+	float x11[3];
+	float y2,y3;
 	float **z1;
 
-	x112[1] = 0;
+	x11[0] =  (y2 + c);
+	return **a1;
 }

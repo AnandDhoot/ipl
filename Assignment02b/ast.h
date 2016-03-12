@@ -41,6 +41,7 @@ class ExpAst : public abstract_astnode {
     public:
     string type;
     string base_type;
+    bool isConst=0;;
     virtual void print (int level){}
 };
 
@@ -62,6 +63,7 @@ class IntConst : public ExpAst {
     IntConst(int n){
         x = n;
         type="int";
+        isConst=1;
     }
 
     void print(int level){
@@ -77,6 +79,7 @@ class FloatConst : public ExpAst {
     FloatConst(float n){
         x = n;
         type="float";
+        isConst=1;
     }
 
     void print(int level){
@@ -91,6 +94,7 @@ class StringConst : public ExpAst {
     string x;
     StringConst(string n){
         x = n;
+        isConst=1;
     }
 
     void print(int level){

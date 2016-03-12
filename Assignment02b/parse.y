@@ -285,6 +285,10 @@ statement
     	{
     		$$ = new Return($2);
     		$$ -> print(0);
+
+    		if($2->type != currTab->returnType){
+    			cerr<<"Incorrect Return Type at "<<lineNum<<endl;
+    		}
     	}
     ;
 
@@ -307,6 +311,11 @@ expression
     |  l_expression '=' expression 	
 		{
 			RefAst* temp = $1;
+			if(temp->type!=temp->base_type)
+			{
+				cerr << "Incorrect types at line " << lineNum << endl;
+				exit(112);
+			}
 			if(temp->type == "void*" && $3->type[$3->type.size()-1] == '*')
 			{
 				$$ = new Assign(temp, $3);
@@ -336,6 +345,7 @@ expression
 					$$ = new Assign(temp, $3);
 			}
 			$$->type = "int";
+			$$->isConst=1;
 		}	
     ;
 
@@ -354,6 +364,7 @@ logical_or_expression            // The usual hierarchy that starts here...
 
 			$$ = new Op2("OR", $1, $3);
 			$$->type="int";
+			$$->isConst=1;
 		}	
 	;
 
@@ -371,6 +382,7 @@ logical_and_expression
 			}
 			$$ = new Op2("AND", $1, $3);
 			$$->type="int";
+			$$->isConst=1;
 		}	
 	;
 
@@ -397,6 +409,7 @@ equality_expression
 				$$ = new Op2("EQ", $1, $3);
 
 			$$->type="int";
+			$$->isConst=1;
 		}	
 	| equality_expression NE_OP relational_expression
 		{
@@ -416,6 +429,7 @@ equality_expression
 				$$ = new Op2("NE", $1, $3);
 
 			$$->type="int";
+			$$->isConst=1;
 		}
 	;
 
@@ -445,6 +459,7 @@ relational_expression
 			else
 				$$ = new Op2("LT-INT", $1, $3);
 			$$->type=="int";
+			$$->isConst=1;
 		}
 	| relational_expression '>' additive_expression 
 		{
@@ -466,6 +481,7 @@ relational_expression
 			else
 				$$ = new Op2("GT-INT", $1, $3);
 			$$->type=="int";
+			$$->isConst=1;
 		}
 	| relational_expression LE_OP additive_expression 
 		{
@@ -487,6 +503,7 @@ relational_expression
 			else
 				$$ = new Op2("LE-INT", $1, $3);
 			$$->type=="int";
+			$$->isConst=1;
 		}
     | relational_expression GE_OP additive_expression 
 		{
@@ -509,6 +526,7 @@ relational_expression
 				$$ = new Op2("GE-INT", $1, $3);
 
 			$$->type=="int";
+			$$->isConst=1;
 		}
 	;
 
@@ -543,6 +561,7 @@ additive_expression
 				$$ = new Op2("Plus-INT", $1, $3);
 				$$->type=="int";
 			}
+			$$->isConst=1;
 
 		} 
 	| additive_expression '-' multiplicative_expression 
@@ -571,6 +590,7 @@ additive_expression
 				$$ = new Op2("Minus-INT", $1, $3);
 				$$->type=="int";
 			}
+			$$->isConst=1;
 
 		}
 	;
@@ -606,6 +626,7 @@ multiplicative_expression
 				$$ = new Op2("Multiply-INT", $1, $3);
 				$$->type=="int";
 			}
+			$$->isConst=1;
 		} 
 	| multiplicative_expression '/' unary_expression 
 		{
@@ -634,6 +655,7 @@ multiplicative_expression
 				$$ = new Op2("Divide-INT", $1, $3);
 				$$->type=="int";
 			}
+			$$->isConst=1;
 		}
 	;
 
@@ -645,7 +667,33 @@ unary_expression
 	| unary_operator postfix_expression 
 		{
 			$$ = new Op1($1, $2);
-			$$->type=$2->type;
+			ExpAst* temp=$2;
+			if($1=="AddressOf"){
+				if($2->isConst==1){
+					cerr<<"AddressOf applied to const exp at "<<lineNum<<endl;
+					exit(0);
+				}
+				$$->type=$2->type+"*";
+			}
+			else if($1=="Deref"){
+					if($2->isConst==1){
+						cerr<<"Deref applied to const exp at "<<lineNum<<endl;
+						exit(0);
+				}
+				   if(temp->base_type[temp->base_type.size()-1]=='*'){
+    					$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
+    					$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
+					}
+					else{
+						cerr<<"Arbit Deref at "<<lineNum<<endl;
+					exit(0);
+
+					}
+			}
+			else
+				$$->type=$2->type;
+
+			$$->isConst=1;
 		}			
 	;
 
@@ -658,16 +706,19 @@ postfix_expression
     	{
     		$$ = new Funcall(new Identifier($1), new list<ExpAst *>());
     		$$->type=globTab.sym[$1]->type;
+    		$$->isConst=1;
     	}		
 	| IDENTIFIER '(' expression_list ')' 
     	{
     		$$ = new Funcall(new Identifier($1), $3);
     		$$->type=globTab.sym[$1]->type;
+    		$$->isConst=1;
     	}
 	| l_expression INC_OP
 		{
 			$$ = new Op1("PlusPlus", $1);
 			$$->type=$1->type;
+			$$->isConst=1;
 		}		
 	;
 
@@ -681,6 +732,7 @@ l_expression
 	    	}
 	    	$$->type=currTab->inScope($1)->starType();
 	    	$$->base_type=currTab->inScope($1)->type;
+	    	$$->isConst=0;
 	    }
     | l_expression '[' expression ']'
     	{
@@ -695,6 +747,7 @@ l_expression
     			cerr<<"Arbit Array acess error\n";
     			exit(3);
     		}
+    		$$->isConst=0;
 
     	}
     | '*' l_expression
@@ -709,6 +762,7 @@ l_expression
     			cerr<<"Arbit Pointer Deref error\n";
     			exit(3);
     		}
+    		$$->isConst=0;
 		}
     | l_expression '.' IDENTIFIER
 		{	RefAst* temp=$1;
@@ -727,6 +781,7 @@ l_expression
 			}
 			$$->type= mem->starType() ; 
 			$$->base_type=mem->type;
+			$$->isConst=0;
 
 		}
     | l_expression PTR_OP IDENTIFIER
@@ -750,6 +805,7 @@ l_expression
     			cerr<<"Arbit Pointer OP error\n";
     			exit(3);
     		}
+    		$$->isConst=0;
 
 		}
     | '(' l_expression ')'	
@@ -783,11 +839,11 @@ unary_operator
     | '&'
     	{
     		$$ = "AddressOf";
-    	} 	
-    | '*'
+    	}
+   	| '*'
     	{
     		$$ = "Deref";
-    	} 	
+    	}  		
 	;
 
 selection_statement
