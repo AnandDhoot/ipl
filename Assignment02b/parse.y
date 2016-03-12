@@ -115,6 +115,10 @@ type_specifier                   // This is the information
     | STRUCT IDENTIFIER 
     	{
     		type0 = $2;
+    		if(globTab.inScope($2)==NULL){
+    			cerr<<"Struct used without declaration at "<<lineNum<<endl;
+    			exit(0);
+    		}
     		currSize = globTab.inScope($2)->size;
     		if(parsingFun)
     		{
@@ -311,7 +315,7 @@ expression
     |  l_expression '=' expression 	
 		{
 			RefAst* temp = $1;
-			if(temp->type!=temp->base_type)
+			if(temp->type!=temp->base_type)//to Combat assignmnets to whole arrays
 			{
 				cerr << "Incorrect types at line " << lineNum << endl;
 				exit(112);
@@ -339,7 +343,7 @@ expression
 			}
 			else
 			{
-				if(temp->type!=$3->type)
+				if(temp->type!=$3->type) // TODO check if one of them is struct
 					$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
 				else
 					$$ = new Assign(temp, $3);

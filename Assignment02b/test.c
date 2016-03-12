@@ -26,3 +26,18 @@ int main2(int **a1, struct main b[3][4], float c)
 	x11[0] =  (y2 + c);
 	return **a1;
 }
+
+struct hello {
+        int a;
+        float b;
+};
+
+int main7() {
+        int b;
+        int a;
+        struct hello k;  
+
+        a = k;
+
+        return 0;
+}
