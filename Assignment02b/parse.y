@@ -756,6 +756,7 @@ unary_expression
 			else if($1=="Deref"){
 			ExpAst* temp=  $2;
 			$$ = new Deref($2);
+			cerr<<temp->base_type;
     		if(temp->base_type[temp->base_type.size()-1]=='*'){
     		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
     		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
@@ -802,7 +803,8 @@ postfix_expression
     		}
 
     		$$ = new Funcall(new Identifier($1), new list<ExpAst *>());
-    		$$->type=globTab.sym[$1]->type;
+    		$$->type=globTab.sym[$1]->starType();
+    		$$->base_type=globTab.sym[$1]->type;
     		$$->isConst=0;
     		$$->isLval=0;
     	}		
@@ -903,7 +905,8 @@ postfix_expression
 	    	}
 
     		$$ = new Funcall(new Identifier($1), expList);
-    		$$->type=globTab.sym[$1]->type;
+    		$$->type=globTab.sym[$1]->starType();
+    		$$->base_type=globTab.sym[$1]->type;
   			$$->isConst=0;
     		$$->isLval=0;
     	}
