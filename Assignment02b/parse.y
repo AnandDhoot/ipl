@@ -11,8 +11,7 @@
 %type<STMTLIST> statement_list
 %type<EXPLIST> expression_list
 %type<STMTAST> compound_statement statement assignment_statement selection_statement iteration_statement 
-%type<EXPAST> expression logical_and_expression logical_or_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression 
-%type<REFAST> l_expression
+%type<EXPAST> expression logical_and_expression logical_or_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression
 
 %%
 
@@ -217,15 +216,22 @@ declarator
     ;
 
 primary_expression 
-    : l_expression
-		{
-			$$ = $1;
-		}	
-    | INT_CONSTANT 
+    :INT_CONSTANT 
 	    {
 	    	$$ = new IntConst($1);
 	    	value = $1;
 	    	isIntConst = true;
+	    }
+	| IDENTIFIER
+	    {
+	    	$$ = new Identifier($1);
+	    	if(currTab->inScope($1)==NULL){
+	    		cerr<<"Scope Error"<<lineNum;
+	    		exit(3);
+	    	}
+	    	$$->type=currTab->inScope($1)->starType();
+	    	$$->base_type=currTab->inScope($1)->type;
+	    	$$->isConst=0;
 	    }
     | FLOAT_CONSTANT
 	    {
@@ -356,12 +362,12 @@ expression
 		{
 			$$ = $1;
 		}	
-    |  l_expression '=' expression 	
+    |  unary_expression '=' expression 	
 		{
 			// TODO - Handle array assignments
 			// TODO - Copy code for ^ in return, function parameters
 
-			RefAst* temp = $1;
+			ExpAst* temp = $1;
 			if(temp->type!=temp->base_type) //to Combat assignmnets to whole arrays
 			{
 				cerr << "Incorrect types at line " << lineNum << endl;
@@ -724,7 +730,7 @@ unary_expression
 		{
 			$$ = $1;
 		}					
-	| unary_operator postfix_expression 
+	| unary_operator unary_expression 
 		{
 			$$ = new Op1($1, $2);
 			ExpAst* temp=$2;
@@ -736,19 +742,19 @@ unary_expression
 				$$->type=$2->type+"*";
 			}
 			else if($1=="Deref"){
-					if($2->isConst==1){
-						cerr<<"Deref applied to const exp at "<<lineNum<<endl;
-						exit(0);
-				}
-				   if(temp->base_type[temp->base_type.size()-1]=='*'){
-    					$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
-    					$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
-					}
-					else{
-						cerr<<"Arbit Deref at "<<lineNum<<endl;
-					exit(0);
-
-					}
+						{
+			ExpAst* temp=  $2;
+			$$ = new Deref($2);
+    		if(temp->base_type[temp->base_type.size()-1]=='*'){
+    		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
+    		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
+    	}
+    		else{
+    			cerr<<"Arbit Pointer Deref error\n";
+    			exit(3);
+    		}
+    		$$->isConst=0;
+		}
 			}
 			else
 				$$->type=$2->type;
@@ -882,29 +888,16 @@ postfix_expression
     		$$->type=globTab.sym[$1]->type;
     		$$->isConst=1;
     	}
-	| l_expression INC_OP
+	| postfix_expression INC_OP
 		{
 			$$ = new Op1("PlusPlus", $1);
 			$$->type=$1->type;
 			$$->isConst=1;
 		}		
-	;
 
-l_expression
-    : IDENTIFIER
-	    {
-	    	$$ = new Identifier($1);
-	    	if(currTab->inScope($1)==NULL){
-	    		cerr<<"Scope Error"<<lineNum;
-	    		exit(3);
-	    	}
-	    	$$->type=currTab->inScope($1)->starType();
-	    	$$->base_type=currTab->inScope($1)->type;
-	    	$$->isConst=0;
-	    }
-    | l_expression '[' expression ']'
+    | postfix_expression '[' expression ']'
     	{
-    		RefAst* temp=  $1;
+    		ExpAst* temp=  $1;
     		$$ = new ArrayRef($1,$3);
 
     		if(temp->type[temp->type.size()-1]=='*'){
@@ -918,22 +911,8 @@ l_expression
     		$$->isConst=0;
 
     	}
-    | '*' l_expression
-		{
-			RefAst* temp=  $2;
-			$$ = new Deref($2);
-    		if(temp->base_type[temp->base_type.size()-1]=='*'){
-    		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
-    		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
-    	}
-    		else{
-    			cerr<<"Arbit Pointer Deref error\n";
-    			exit(3);
-    		}
-    		$$->isConst=0;
-		}
-    | l_expression '.' IDENTIFIER
-		{	RefAst* temp=$1;
+    | postfix_expression '.' IDENTIFIER
+		{	ExpAst* temp=$1;
 			string id=$3;
 			$$ = new Member($1, new Identifier(id));
 			symbol* t = globTab.inScope(temp->type);
@@ -952,9 +931,9 @@ l_expression
 			$$->isConst=0;
 
 		}
-    | l_expression PTR_OP IDENTIFIER
+    | postfix_expression PTR_OP IDENTIFIER
 		{
-			RefAst* temp=$1;
+			ExpAst* temp=$1;
 			$$ = new Arrow($1, new Identifier($3));
 			if(temp->base_type[temp->base_type.size()-1]=='*'){
 			symbol* t = globTab.inScope(temp->type.substr(0,temp->type.size()-1));
@@ -976,10 +955,6 @@ l_expression
     		$$->isConst=0;
 
 		}
-    | '(' l_expression ')'	
-    	{
-    		$$ = $2;
-    	}
     ;
 
 expression_list
