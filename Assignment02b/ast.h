@@ -41,7 +41,7 @@ class ExpAst : public abstract_astnode {
     public:
     string type;
     string base_type;
-    bool isConst=0;;
+    bool isConst=0,isLval;;
     virtual void print (int level){}
 };
 

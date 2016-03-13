@@ -221,6 +221,8 @@ primary_expression
 	    	$$ = new IntConst($1);
 	    	value = $1;
 	    	isIntConst = true;
+	    	$$->isLval=0;
+	    	$$->isConst=1;
 	    }
 	| IDENTIFIER
 	    {
@@ -232,14 +234,19 @@ primary_expression
 	    	$$->type=currTab->inScope($1)->starType();
 	    	$$->base_type=currTab->inScope($1)->type;
 	    	$$->isConst=0;
+	    	$$->isLval=1;
 	    }
     | FLOAT_CONSTANT
 	    {
 	    	$$ = new FloatConst($1);
+	    	$$->isLval=0;
+	    	$$->isConst=1;
 	    }
     | STRING_LITERAL
 	    {
 	    	$$ = new StringConst($1);
+	    	$$->isLval=0;
+	    	$$->isConst=1;
 	    }
     | '(' expression ')' 
 		{
@@ -368,6 +375,11 @@ expression
 			// TODO - Copy code for ^ in return, function parameters
 
 			ExpAst* temp = $1;
+			if(!temp->isLval) 
+			{
+				cerr << "Exp has no Lvalue at  " << lineNum << endl;
+				exit(112);
+			}
 			if(temp->type!=temp->base_type) //to Combat assignmnets to whole arrays
 			{
 				cerr << "Incorrect types at line " << lineNum << endl;
@@ -735,14 +747,13 @@ unary_expression
 			$$ = new Op1($1, $2);
 			ExpAst* temp=$2;
 			if($1=="AddressOf"){
-				if($2->isConst==1){
-					cerr<<"AddressOf applied to const exp at "<<lineNum<<endl;
+				if($2->isLval==0){
+					cerr<<"AddressOf applied to non l_value exp at "<<lineNum<<endl;
 					exit(0);
 				}
 				$$->type=$2->type+"*";
 			}
 			else if($1=="Deref"){
-						{
 			ExpAst* temp=  $2;
 			$$ = new Deref($2);
     		if(temp->base_type[temp->base_type.size()-1]=='*'){
@@ -754,12 +765,18 @@ unary_expression
     			exit(3);
     		}
     		$$->isConst=0;
-		}
 			}
-			else
-				$$->type=$2->type;
+			else if($1=="NOT"){
+				$$->type="int";
+				$$->isConst=1;
+				$$->isLval=0;
 
-			$$->isConst=1;
+			}
+			else if($1=="uminus"){
+				$$->type=$2->type;
+				$$->isLval=0;
+				$$->isConst=1;
+			}
 		}			
 	;
 
@@ -786,7 +803,8 @@ postfix_expression
 
     		$$ = new Funcall(new Identifier($1), new list<ExpAst *>());
     		$$->type=globTab.sym[$1]->type;
-    		$$->isConst=1;
+    		$$->isConst=0;
+    		$$->isLval=0;
     	}		
 	| IDENTIFIER '(' expression_list ')' 
     	{
@@ -886,13 +904,15 @@ postfix_expression
 
     		$$ = new Funcall(new Identifier($1), expList);
     		$$->type=globTab.sym[$1]->type;
-    		$$->isConst=1;
+  			$$->isConst=0;
+    		$$->isLval=0;
     	}
 	| postfix_expression INC_OP
 		{
 			$$ = new Op1("PlusPlus", $1);
 			$$->type=$1->type;
 			$$->isConst=1;
+    		$$->isLval=0;
 		}		
 
     | postfix_expression '[' expression ']'
@@ -909,6 +929,7 @@ postfix_expression
     			exit(3);
     		}
     		$$->isConst=0;
+    		$$->isLval=temp->isLval;
 
     	}
     | postfix_expression '.' IDENTIFIER
@@ -929,6 +950,7 @@ postfix_expression
 			$$->type= mem->starType() ; 
 			$$->base_type=mem->type;
 			$$->isConst=0;
+			$$->isLval=temp->isLval;
 
 		}
     | postfix_expression PTR_OP IDENTIFIER
@@ -953,6 +975,7 @@ postfix_expression
     			exit(3);
     		}
     		$$->isConst=0;
+    		$$->isLval=temp->isLval;
 
 		}
     ;

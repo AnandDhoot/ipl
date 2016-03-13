@@ -1,4 +1,4 @@
-int** main1(float *a, void *d, float c)
+int** main1(float *a, int *d, float c)
 {
 	int x1[10];
 	float y2;
@@ -8,7 +8,7 @@ int** main1(float *a, void *d, float c)
 	void *abc[123],*def;
 	x1[2] = x1[1] + **z1;
 
-	a11 = *b1;
+	x1 = d;
 	b1 = &a11;
 }
 struct main
