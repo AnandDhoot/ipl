@@ -300,6 +300,10 @@ statement
 			{
 				$$ = new Return($2);
 			}
+			else if($2->type == "void*" && retType[retType.size()-1] == '*')
+			{
+				$$ = new Return($2);
+			}
 			else if(retType[retType.size()-1] == '*' && $2->type[$2->type.size()-1] == '*')
 			{
 				if(retType == $2->type)
@@ -321,6 +325,11 @@ statement
 			{
 				if(retType!=$2->type)
 				{
+					if(retType == "void" || $2->type == "void")
+					{
+						cerr << "Void types at line " << lineNum << endl;
+						exit(112);
+					}
 					// Case to handle assingments of structs. 
 					// currTab->inScope() returns NULL for non-structs
 					if(currTab->inScope(retType)==NULL && currTab->inScope($2->type)==NULL)
@@ -371,6 +380,10 @@ expression
 			{
 				$$ = new Assign(temp, $3);
 			}
+			else if($3->type == "void*" && temp->type[temp->type.size()-1] == '*')
+			{
+				$$ = new Assign(temp, $3);
+			}
 			else if(temp->type[temp->type.size()-1] == '*' && $3->type[$3->type.size()-1] == '*')
 			{
 				if(temp->type == $3->type)
@@ -392,6 +405,11 @@ expression
 			{
 				if(temp->type!=$3->type)
 				{
+					if(temp->type == "void" || $3->type == "void")
+					{
+						cerr << "Void types at line " << lineNum << endl;
+						exit(112);
+					}
 					// Case to handle assingments of structs. 
 					if(currTab->inScope(temp->type)==NULL && currTab->inScope($3->type)==NULL)
 						$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
@@ -824,6 +842,11 @@ postfix_expression
     					expList.push_back(argum);
 						continue;
 					}
+					else if(argum->type == "void*" && symArr[i]->type[symArr[i]->type.size()-1] == '*')
+					{
+    					expList.push_back(argum);
+						continue;
+					}
 					else if(symArr[i]->type[symArr[i]->type.size()-1] == '*' && argum->type[argum->type.size()-1] == '*')
 					{
 						if(symArr[i]->type == argum->type)
@@ -847,6 +870,12 @@ postfix_expression
 					{
 						if(symArr[i]->type!=argum->type)
 						{
+							if(symArr[i]->type == "void" || argum->type == "void")
+							{
+								cerr << "Void types at line " << lineNum << endl;
+								exit(112);
+							}
+
 							// Case to handle assingments of structs. 
 							if(currTab->inScope(symArr[i]->type)==NULL && currTab->inScope(argum->type)==NULL)
 							{
