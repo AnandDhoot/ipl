@@ -752,19 +752,21 @@ unary_expression
 					exit(0);
 				}
 				$$->type=$2->type+"*";
+				$$->isLval=0;
 			}
 			else if($1=="Deref"){
 			ExpAst* temp=  $2;
 			$$ = new Deref($2);
-			cerr<<temp->base_type;
     		if(temp->base_type[temp->base_type.size()-1]=='*'){
     		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
     		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
+
     	}
     		else{
     			cerr<<"Arbit Pointer Deref error\n";
     			exit(3);
     		}
+    		$$->isLval=1;
     		$$->isConst=0;
 			}
 			else if($1=="NOT"){

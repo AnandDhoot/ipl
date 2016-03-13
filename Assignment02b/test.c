@@ -3,6 +3,7 @@ struct main
 	float x1;
 	int* x2;
 	float **dd3;
+
 };
 struct main *main2()
 {
@@ -23,7 +24,7 @@ int** main1(float *a, void *d, float c)
 	void **b1;
 	void *abc[123],*def;
 	x1[2] = x1[1] + **z1;
-	dw = *main2();
+	*main2()=dw;
 	a11 = *b1;
 	b1 = &a11;
 }
