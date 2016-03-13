@@ -103,7 +103,7 @@ class StringConst : public ExpAst {
     }
 };
 
-class Identifier : public RefAst {
+class Identifier : public ExpAst {
 
   public:
     string x;
@@ -176,9 +176,9 @@ class Op2 : public ExpAst{
 class Assign : public ExpAst{
 
     public:
-        RefAst *lExp;
+        ExpAst *lExp;
         ExpAst *rightExp;
-        Assign(RefAst *x,ExpAst *y){
+        Assign(ExpAst *x,ExpAst *y){
             lExp = x;
             rightExp = y;
         }
@@ -330,8 +330,8 @@ class While : public StmtAst{
 class Pointer : public ExpAst{
 
     public:
-        RefAst *exp;
-        Pointer(RefAst *x){
+        ExpAst *exp;
+        Pointer(ExpAst *x){
             exp = x;
         }
 
@@ -341,11 +341,11 @@ class Pointer : public ExpAst{
         }
 };
 
-class Deref : public RefAst{
+class Deref : public ExpAst{
 
     public:
-        RefAst *exp;
-        Deref(RefAst *x){
+        ExpAst *exp;
+        Deref(ExpAst *x){
             exp = x;
         }
 
@@ -355,12 +355,12 @@ class Deref : public RefAst{
         }
 };
 
-class ArrayRef : public RefAst{
+class ArrayRef : public ExpAst{
 
     public:
-        RefAst *varIdent;
+        ExpAst *varIdent;
         ExpAst *exp;
-        ArrayRef(RefAst *x,ExpAst *y){
+        ArrayRef(ExpAst *x,ExpAst *y){
             varIdent = x;
             exp = y;
         }
@@ -374,12 +374,12 @@ class ArrayRef : public RefAst{
         }
 };
 
-class Member : public RefAst{
+class Member : public ExpAst{
 
     public:
-        RefAst *varIdent;
+        ExpAst *varIdent;
         Identifier *id;
-        Member(RefAst *x,Identifier *y){
+        Member(ExpAst *x,Identifier *y){
             varIdent = x;
             id = y;
         }
@@ -393,12 +393,12 @@ class Member : public RefAst{
         }
 };
 
-class Arrow : public RefAst{
+class Arrow : public ExpAst{
 
     public:
-        RefAst *varIdent;
+        ExpAst *varIdent;
         Identifier *id;
-        Arrow(RefAst *x,Identifier *y){
+        Arrow(ExpAst *x,Identifier *y){
             varIdent = x;
             id = y;
         }
