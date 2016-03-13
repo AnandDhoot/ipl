@@ -31,8 +31,7 @@ translation_unit
     ;
 
 struct_specifier 
-    : STRUCT IDENTIFIER 
-    '{' declaration_list '}' ';'
+    : STRUCT IDENTIFIER '{' declaration_list '}' ';'
 		{
 			if(globTab.inScope($2) != NULL)
 			{
@@ -66,8 +65,8 @@ function_definition
 		}
 	compound_statement
 		{
-			symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
-			globTab.sym[currTab->name] = s;
+			// symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
+			// globTab.sym[currTab->name] = s;
 			parsingFun = true;
 
 			Tb *newSymTab = new Tb();
@@ -86,6 +85,9 @@ type_specifier                   // This is the information
     		if(parsingFun)
     		{
     			currTab->returnType = type0;
+
+    			// cout << endl << "Here " << currTab->name << endl << endl;
+
     			parsingFun = false;
     		}
 		}
@@ -132,12 +134,16 @@ type_specifier                   // This is the information
 fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
 		{
-			if(globTab.inScope($1) != NULL)
+
+			if($1 != currTab->name && globTab.inScope($1) != NULL)
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
 			}
+
 			currTab->name = $1;
+				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
+				globTab.sym[currTab->name] = s;
 			offset = 0;
 
 			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
@@ -153,6 +159,8 @@ fun_declarator
 				exit(125);
 			}
 			currTab->name = $1;
+				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
+				globTab.sym[currTab->name] = s;
 			offset = 0;
 		}
     | '*' fun_declarator 
@@ -336,13 +344,14 @@ statement
 			}
 			else
 			{
+				
+				if(retType == "void" || $2->type == "void")
+				{
+					cerr << "Void types at line " << lineNum << endl;
+					exit(112);
+				}
 				if(retType!=$2->type)
 				{
-					if(retType == "void" || $2->type == "void")
-					{
- 						cerr << "Void types at line " << lineNum << endl;
- 						exit(112);
- 					}
 					// Case to handle assingments of structs. 
 					// currTab->inScope() returns NULL for non-structs
 					if(currTab->inScope(retType)==NULL && currTab->inScope($2->type)==NULL)
@@ -421,13 +430,13 @@ expression
 			}
 			else
 			{
+				if(temp->type == "void" || $3->type == "void")
+				{
+					cerr << "Void types at line " << lineNum << endl;
+					exit(112);
+				}
 				if(temp->type!=$3->type)
 				{
-					if(temp->type == "void" || $3->type == "void")
-					{
- 						cerr << "Void types at line " << lineNum << endl;
- 						exit(112);
- 					}
 
 					// Case to handle assingments of structs. 
 					if(currTab->inScope(temp->type)==NULL && currTab->inScope($3->type)==NULL)
@@ -897,13 +906,13 @@ postfix_expression
 					}
 					else
 					{
+						if(symArr[i]->type == "void" || argum->type == "void")
+						{
+	 						cerr << "Void types at line " << lineNum << endl;
+	 						exit(112);
+ 						}
 						if(symArr[i]->type!=argum->type)
 						{
-							if(symArr[i]->type == "void" || argum->type == "void")
-							{
-		 						cerr << "Void types at line " << lineNum << endl;
-		 						exit(112);
-	 						}
 							// Case to handle assingments of structs. 
 							if(currTab->inScope(symArr[i]->type)==NULL && currTab->inScope(argum->type)==NULL)
 							{
