@@ -1,8 +1,6 @@
 all:   clean Scanner.ih Scanner.h Scannerbase.h lex.cc parse.cc main.cc Parser.h Parserbase.h Parser.ih
 	g++  -g --std=c++0x lex.cc parse.cc main.cc -o parser
 	./parser < test.c > junk
-	@subl junk
-	@make clean
         
 Scanner.ih: lex.l
 	@if [ ! -e Scanner.ih ]; then \

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string>
 #include <list>
+#include <sstream>
 #include "st.h"
 using namespace std;
 
@@ -43,6 +44,7 @@ class ExpAst : public abstract_astnode {
     string type;
     string name;
     string base_type;
+    std::vector<int> dim;
     bool isConst=0,isLval;;
     virtual void print (int level){}
 };

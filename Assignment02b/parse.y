@@ -123,7 +123,6 @@ type_specifier                   // This is the information
     	{
     		type0 = $2;
     		type1 = $2;
-    		cout<<$2;
     		// if(globTab.inScope($2)==NULL){
     		// 	cerr<<"Struct used without declaration at "<<lineNum<<endl;
     		// 	exit(0);
@@ -179,6 +178,7 @@ fun_declarator
     | '*' fun_declarator 
     	{
    			currTab->returnType += "*";
+   			globTab.sym[currTab->name]->type = currTab->returnType;
     	}
 	;
 
@@ -253,6 +253,7 @@ primary_expression
 	    		exit(3);
 	    	}
 	    	$$->type=currTab->inScope($1)->starType();
+	    	$$->dim=currTab->inScope($1)->dimensions;
 	    	$$->base_type=currTab->inScope($1)->type;
 	    	$$->isConst=0;
 	    	$$->isLval=1;
@@ -357,7 +358,6 @@ statement
 			}
 			else
 			{
-				
 				if(retType == "void" || $2->type == "void")
 				{
 					cerr << "Void types at line " << lineNum << endl;
@@ -450,7 +450,6 @@ expression
 				}
 				if(temp->type!=$3->type)
 				{
-
 					// Case to handle assingments of structs. 
 					if(currTab->inScope(temp->type)==NULL && currTab->inScope($3->type)==NULL)
 						$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
@@ -792,19 +791,25 @@ unary_expression
 					cerr<<"AddressOf applied to non l_value exp at "<<lineNum<<endl;
 					exit(0);
 				}
-				$$->type=$2->type+"*";
+
+				$$->type=temp->type+"*";
 				$$->isLval=0;
 			}
 			else if($1=="Deref"){
 			ExpAst* temp=  $2;
 			$$ = new Deref($2);
-    		if(temp->base_type[temp->base_type.size()-1]=='*'){
+    		if(temp->base_type[temp->base_type.size()-1]=='*'&&temp->base_type==temp->type){
     		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
     		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
+    		if($$->type=="void"){
+    			cerr<<"Void Pointer Deref error " << lineNum << endl;
+    			exit(3);
+
+    		}
 
     	}
     		else{
-    			cerr<<"Arbit Pointer Deref error\n";
+    			cerr<<"Arbit Pointer Deref error " << lineNum << endl;
     			exit(3);
     		}
     		$$->isLval=1;
@@ -883,16 +888,40 @@ postfix_expression
 
 	    			ExpAst* argum = ((list<ExpAst *>*)$3)->front();
     				((list<ExpAst *>*)$3)->pop_front();
+    				
+    				string leftType = symArr[i]->type;
+    				for(int i1=0; i1<symArr[i]->dimensions.size(); i1++)
+    				{
+    					if(i1 == 0)
+	    					leftType += "*";
+	    				else
+	    				{
+	    					stringstream ss;
+	    					ss << leftType << "[" << symArr[i]->dimensions[i1] << "]";
+	    					leftType = ss.str();
+	    				}
+    				}
+    				string rightType = argum->base_type;
+    				for(int i1=0; i1<argum->dim.size(); i1++)
+    				{
+    					if(i1 == 0)
+	    					rightType += "*";
+	    				else
+	    				{
+	    					stringstream ss;
+	    					ss << rightType << "[" << argum->dim[i1] << "]";
+	    					rightType = ss.str();
+	    				}
+    				}
 
-    				
-    				
+    				// cerr << leftType << " -- " << rightType << endl;
+
 	    			// Code from expression assignment
 					// (With some modifications)
 	    			/********************************/
 
 					if(symArr[i]->type == "void*" && argum->type[argum->type.size()-1] == '*')
 					{
-						// $$ = new Assign(symArr[i], argum);
     					expList.push_back(argum);
 						continue;
 					}
@@ -901,25 +930,24 @@ postfix_expression
     					expList.push_back(argum);
 						continue;
 		 			}
-		 			// else if(symArr[i]->dimensions.size()>0&&symArr[i]->starType() == argum->starType())
-		 			// {
+		 			else if(symArr[i]->dimensions.size()>0 || argum->dim.size() > 0)
+		 			{
+						if(leftType == rightType)
+						{
+    						expList.push_back(argum);
+							continue;
+						}
+						else
+						{
+							cerr << "Arguments mismatch at " << lineNum << endl;
+							exit(112);
+						}
 
-		 			// 	for(int i=1; i<symArr[i]->dimensions.size();i++){
-		 			// 		if(i<argum->dimensions.size()){
-		 			// 		if(!argum->dimensions[i]==symArr[i]->dimensions[i]){
-		 			// 		cerr << "Arguments mismatch at " << lineNum << endl;
-						// 	exit(112);
-
-		 			// 	}}
-		 			// 		cerr << "Arguments mismatch at " << lineNum << endl;
-						// 	exit(112);	
-		 			// 		}
-		 			// }
+		 			}
 					else if(symArr[i]->type[symArr[i]->type.size()-1] == '*' && argum->type[argum->type.size()-1] == '*')
 					{
 						if(symArr[i]->type == argum->type)
 						{
-							// $$ = new Assign(symArr[i], argum);
     						expList.push_back(argum);
 							continue;
 						}
@@ -996,9 +1024,13 @@ postfix_expression
     		if(temp->type[temp->type.size()-1]=='*'){
     		$$->type=temp->type.substr(0,temp->type.size()-1);
     		$$->base_type=temp->base_type;
+    		if(temp->dim.size()>0){
+    		temp->dim.erase(temp->dim.begin());
+    		$$->dim= temp->dim;
+    		}
     	}
     		else{
-    			cerr<<"Arbit Array acess error\n";
+    			cerr<<"Arbit Array acess error at " << lineNum << endl;
     			exit(3);
     		}
     		$$->isConst=0;
@@ -1010,45 +1042,46 @@ postfix_expression
 			string id=$3;
 			$$ = new Member($1, new Identifier(id));
 			symbol* t = globTab.inScope(temp->type);
-			cerr<<temp->type;
 			if(t==NULL){
-				cerr<<"Member not defined for "<<temp->type<<lineNum;
+				cerr<<"Member not defined for "<<temp->type<< " at " <<lineNum << endl;
 				exit(2);
 			}
 			symbol* mem=t->symtab->inScope(id);
 			if(mem==NULL){
-				cerr<<" No such Member"<<id<<lineNum;
+				cerr<<" No such Member "<<id<< " at " <<lineNum << endl;
 				exit(2);
 			}
 			$$->type= mem->starType() ; 
+			$$->dim= mem->dimensions ; 
 			$$->base_type=mem->type;
 			$$->isConst=0;
-			$$->isLval=temp->isLval;
+			$$->isLval=1;	
 
 		}
     | postfix_expression PTR_OP IDENTIFIER
 		{
 			ExpAst* temp=$1;
 			$$ = new Arrow($1, new Identifier($3));
-			if(temp->base_type[temp->base_type.size()-1]=='*'){
+			if(temp->base_type[temp->base_type.size()-1]=='*'&&temp->base_type==temp->type){
 			symbol* t = globTab.inScope(temp->type.substr(0,temp->type.size()-1));
 			if(t==NULL){
-				cerr<<"PTR not defined for "<<temp->type<<lineNum;
+				cerr<<"PTR not defined for "<<temp->type << " at " <<lineNum << endl;
 				exit(2);
 			}
 			symbol* mem=t->symtab->inScope($3);
 			if(mem==NULL){
-				cerr<<" No such Member"<<$3<<lineNum;
+				cerr<<" No such Member "<<$3<< " at " <<lineNum << endl;
 				exit(2);
 			}
-			$$->type= mem->starType() ; 
+			$$->type= mem->starType() ;
+			$$->dim= mem->dimensions ; 
 			$$->base_type=mem->type;}
 			 else{
-    			cerr<<"Arbit Pointer OP error\n";
+    			cerr<<"Arbit Pointer OP error "<< " at " <<lineNum << endl;
     			exit(3);
     		}
     		$$->isConst=0;
-    		$$->isLval=temp->isLval;
+    		$$->isLval=1;
 
 		}
     ;
