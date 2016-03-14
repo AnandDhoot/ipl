@@ -793,14 +793,17 @@ unary_expression
 				}
 
 				$$->type=temp->type+"*";
+				$$->base_type=temp->base_type+"*";
+				$$->dim=temp->dim;
 				$$->isLval=0;
 			}
 			else if($1=="Deref"){
 			ExpAst* temp=  $2;
 			$$ = new Deref($2);
-    		if(temp->base_type[temp->base_type.size()-1]=='*'&&temp->base_type==temp->type){
-    		$$->type=temp->base_type.substr(0,temp->base_type.size()-1);
+    		if(temp->base_type[temp->base_type.size()-1]=='*'){
+    		$$->type=temp->type.substr(0,temp->type.size()-1);
     		$$->base_type=temp->base_type.substr(0,temp->base_type.size()-1);
+    		$$->dim=temp->dim;
     		if($$->type=="void"){
     			cerr<<"Void Pointer Deref error " << lineNum << endl;
     			exit(3);

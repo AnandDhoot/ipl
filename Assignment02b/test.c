@@ -17,9 +17,10 @@ int g() {
     struct s a, *p;
     struct t * b, **q;
     void * v;
+    int ti[1];
     p = &a;
     q = &b;
     v = f(*q, &(p->a));
-    q = *v;
+    (*&ti)[0]=1;
     return (*(*q)).b;
 }

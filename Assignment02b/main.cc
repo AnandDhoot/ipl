@@ -18,6 +18,8 @@ string structName;
 int main (int argc, char** arg)
 {
 	currTab->parent = &globTab;
+	int a[2];
+	(*&a)[1]=0;
 	Parser parser;
 	parser.parse();
 }
