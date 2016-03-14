@@ -41,6 +41,7 @@ struct_specifier
 			currTab->name = $2;
 			currTab->returnType = "struct " + currTab->name; // Basically, the type
 			symbol* s = new symbol(currTab->name, "struct", "global", currTab->returnType, 0, 0, currTab);
+			
 			globTab.sym[currTab->name] = s;
 			parsingFun = true;
 
@@ -48,6 +49,8 @@ struct_specifier
 			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
 			{
 				totSize += iterator->second->size;
+				iterator->second->offset -= 4;
+				iterator->second->offset *= -1;
 			}
 			globTab.sym[currTab->name]->size = totSize;
 
@@ -90,6 +93,7 @@ type_specifier                   // This is the information
 
     			parsingFun = false;
     		}
+    		isStruct = false;
 		}
     | INT   
     	{
@@ -101,6 +105,7 @@ type_specifier                   // This is the information
     			currTab->returnType = type0;
     			parsingFun = false;
     		}
+    		isStruct = false;
     	}
 	| FLOAT 
 		{	
@@ -112,22 +117,30 @@ type_specifier                   // This is the information
     			currTab->returnType = type0;
     			parsingFun = false;
     		}
+    		isStruct = false;
 		}
     | STRUCT IDENTIFIER 
     	{
     		type0 = $2;
     		type1 = $2;
     		cout<<$2;
-    		if(globTab.inScope($2)==NULL){
-    			cerr<<"Struct used without declaration at "<<lineNum<<endl;
-    			exit(0);
-    		}
-    		currSize = globTab.inScope($2)->size;
+    		// if(globTab.inScope($2)==NULL){
+    		// 	cerr<<"Struct used without declaration at "<<lineNum<<endl;
+    		// 	exit(0);
+    		// }
+
+    		if(globTab.inScope($2)==NULL)
+    			currSize = 0;
+    		else
+    			currSize = globTab.inScope($2)->size;
     		if(parsingFun)
     		{
     			currTab->returnType = type0;
     			parsingFun = false;
     		}
+
+    		isStruct = true;
+    		structName = $2;
     	}
     ;
 
@@ -871,9 +884,12 @@ postfix_expression
 	    			ExpAst* argum = ((list<ExpAst *>*)$3)->front();
     				((list<ExpAst *>*)$3)->pop_front();
 
+    				
+    				
 	    			// Code from expression assignment
 					// (With some modifications)
 	    			/********************************/
+
 					if(symArr[i]->type == "void*" && argum->type[argum->type.size()-1] == '*')
 					{
 						// $$ = new Assign(symArr[i], argum);
@@ -885,6 +901,20 @@ postfix_expression
     					expList.push_back(argum);
 						continue;
 		 			}
+		 			// else if(symArr[i]->dimensions.size()>0&&symArr[i]->starType() == argum->starType())
+		 			// {
+
+		 			// 	for(int i=1; i<symArr[i]->dimensions.size();i++){
+		 			// 		if(i<argum->dimensions.size()){
+		 			// 		if(!argum->dimensions[i]==symArr[i]->dimensions[i]){
+		 			// 		cerr << "Arguments mismatch at " << lineNum << endl;
+						// 	exit(112);
+
+		 			// 	}}
+		 			// 		cerr << "Arguments mismatch at " << lineNum << endl;
+						// 	exit(112);	
+		 			// 		}
+		 			// }
 					else if(symArr[i]->type[symArr[i]->type.size()-1] == '*' && argum->type[argum->type.size()-1] == '*')
 					{
 						if(symArr[i]->type == argum->type)
@@ -1089,6 +1119,12 @@ declarator_list
 				cerr<<"illegal void type declared at "<<lineNum<<endl;
 				exit(3);
 			}
+
+    		if(isStruct && globTab.inScope(structName)==NULL && type0[type0.size() - 1] != '*'){
+				cerr<<"Struct used without declaration at "<<lineNum<<endl;
+				exit(0);
+    		}
+
 			type0=type1;
 			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
 				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
@@ -1100,6 +1136,12 @@ declarator_list
 				cerr<<"illegal void type declared at "<<lineNum<<endl;
 				exit(3);
 			}
+
+    		if(isStruct && globTab.inScope(structName)==NULL && type0[type0.size() - 1] != '*'){
+				cerr<<"Struct used without declaration at "<<lineNum<<endl;
+				exit(0);
+    		}
+
 			type0=type1;
 			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
 				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];

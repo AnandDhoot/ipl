@@ -13,6 +13,8 @@ int currSize = 0;
 bool isIntConst = false;
 int offset = 4;
 int maxParamOffset = 0;
+bool isStruct = false;
+string structName;
 int main (int argc, char** arg)
 {
 	currTab->parent = &globTab;

@@ -4,20 +4,12 @@ struct main
 	float x1;
 	int* x2;
 	float **dd3;
-	struct main *a; 
-	void *a, b;
-
+	struct main *a, *b, **c; 
 };
-struct main main2()
+struct main main2(int**a)
 {
-	float x11[3];
-	float y2,y3;
-	float **z1;
-	struct main b;
-	int **x;
-	return b;
-
-	main2();
+	int g;
+	g=1;
 }
 void* main1(float *a, void *d, float c)
 {
@@ -28,6 +20,7 @@ void* main1(float *a, void *d, float c)
 	void *a11;
 	void **b1;
 	void *abc[123],*def;
-
+	int ***r;
+	main2(*r);
 	return *b1;
 }

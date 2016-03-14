@@ -15,6 +15,8 @@ extern bool parsingFun;
 extern bool isIntConst;
 extern int offset;
 extern int maxParamOffset;
+extern bool isStruct;
+extern string structName;
 
 class abstract_astnode
 {
@@ -36,10 +38,10 @@ private:
 } ;
 
 
-
 class ExpAst : public abstract_astnode {
     public:
     string type;
+    string name;
     string base_type;
     bool isConst=0,isLval;;
     virtual void print (int level){}
