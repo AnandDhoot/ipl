@@ -261,12 +261,14 @@ primary_expression
     | FLOAT_CONSTANT
 	    {
 	    	$$ = new FloatConst($1);
+	    	isIntConst = false;
 	    	$$->isLval=0;
 	    	$$->isConst=1;
 	    }
     | STRING_LITERAL
 	    {
 	    	$$ = new StringConst($1);
+	    	isIntConst = false;
 	    	$$->isLval=0;
 	    	$$->isConst=1;
 	    }
@@ -1022,6 +1024,10 @@ postfix_expression
 	| postfix_expression INC_OP
 		{
 			$$ = new Op1("PlusPlus", $1);
+			if($1->isLval==0){
+				cerr << "Increment Op not allowed for type Error at line " << lineNum << endl;
+    			exit(1241);
+			}
 			$$->type=$1->type;
 			$$->isConst=1;
     		$$->isLval=0;
