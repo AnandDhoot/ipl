@@ -1038,7 +1038,7 @@ postfix_expression
     		ExpAst* temp=  $1;
     		$$ = new ArrayRef($1,$3);
 
-    		if(temp->type[temp->type.size()-1]=='*'){
+    		if(temp->type[temp->type.size()-1]=='*' && $3->type=="int"){
     		$$->type=temp->type.substr(0,temp->type.size()-1);
     		$$->base_type=temp->base_type;
     		if(temp->dim.size()>0){

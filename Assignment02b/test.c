@@ -5,6 +5,8 @@ struct s {
 
 int * f(void * a, int * b) {
     float * c;
+    int t[4];
+    t["cool"]=1;
     c = a;
     b=(b);
     b = a;
