@@ -1,19 +1,26 @@
 struct s {
     int a;
+    float b;
 };
-struct t {
-    int a;
-    int b;
-};
+
 int * f(void * a, int * b) {
     float * c;
     c = a;
-    b=!(b);
+    b=(b);
     b = a;
     return a;
     return b;
 }
-
+struct t {
+    int a;
+    int b;
+    float d;
+};
+struct jil {
+    int a;
+    int b;
+    float d;
+};
 int g() {
     struct s a, *p;
     struct t * b, **q;

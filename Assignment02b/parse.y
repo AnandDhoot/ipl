@@ -49,7 +49,7 @@ struct_specifier
 			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
 			{
 				totSize += iterator->second->size;
-				iterator->second->offset -= 4;
+				iterator->second->offset += 4;
 				iterator->second->offset *= -1;
 			}
 			globTab.sym[currTab->name]->size = totSize;
@@ -57,7 +57,7 @@ struct_specifier
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
 			currTab->parent = &globTab;
-			offset = 0;
+			offset = -4;
 		}
     ;
 
@@ -75,7 +75,7 @@ function_definition
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
 			currTab->parent = &globTab;
-			offset = 0;
+			offset = -4;
 		}
 	;
 
@@ -380,7 +380,7 @@ statement
 			}
 			/********************************/
 
-    		$$ -> print(0);
+    		//$$ -> print(0);
     	}
     ;
 
