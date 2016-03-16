@@ -8,6 +8,7 @@ struct t {
 int * f(void * a, int * b) {
     float * c;
     c = a;
+    b=!(b);
     b = a;
     return a;
     return b;

@@ -819,12 +819,20 @@ unary_expression
     		$$->isConst=0;
 			}
 			else if($1=="NOT"){
+				if($2->type!="int"&&$2->type!="float"){
+					cerr<<"Not operat not comaptible with type at "<<lineNum<<endl;
+					exit(3);
+				}
 				$$->type="int";
 				$$->isConst=1;
 				$$->isLval=0;
 
 			}
 			else if($1=="uminus"){
+				if($2->type!="int"&&$2->type!="float"){
+					cerr<<"Minus operat not comaptible with type at "<<lineNum<<endl;
+					exit(3);
+				}
 				$$->type=$2->type;
 				$$->isLval=0;
 				$$->isConst=1;
