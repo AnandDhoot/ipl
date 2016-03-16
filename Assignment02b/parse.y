@@ -249,7 +249,7 @@ primary_expression
 	    {
 	    	$$ = new Identifier($1);
 	    	if(currTab->inScope($1)==NULL){
-	    		cerr<<"Scope Error"<<lineNum;
+	    		cerr<<"Scope Error at "<<lineNum << endl;
 	    		exit(3);
 	    	}
 	    	$$->type=currTab->inScope($1)->starType();
@@ -1059,7 +1059,7 @@ postfix_expression
 			}
 			symbol* mem=t->symtab->inScope(id);
 			if(mem==NULL){
-				cerr<<" No such Member "<<id<< " at " <<lineNum << endl;
+				cerr<<"No such Member "<<id<< " at " <<lineNum << endl;
 				exit(2);
 			}
 			$$->type= mem->starType() ; 
