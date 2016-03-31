@@ -18,7 +18,6 @@ extern int offset;
 extern int maxParamOffset;
 extern bool isStruct;
 extern string structName;
-
 class abstract_astnode
 {
 public:
@@ -28,6 +27,7 @@ public:
     string type;
     int size;
     int offset;
+    Tb* myTab;
 virtual void print (int level) = 0;
 // virtual std::string generate_code(const symbolTable&) = 0;
 // virtual basic_types getType() = 0;
@@ -47,11 +47,13 @@ class ExpAst : public abstract_astnode {
     std::vector<int> dim;
     bool isConst=0,isLval;;
     virtual void print (int level){}
+    void genCode(){}
 };
 
 class StmtAst : public abstract_astnode {
     public:
     virtual void print (int level){}
+    void genCode(){}
 };
 
 class RefAst : public ExpAst {
@@ -68,6 +70,7 @@ class IntConst : public ExpAst {
         x = n;
         type="int";
         isConst=1;
+        myTab=currTab;
     }
 
     void print(int level){
@@ -84,6 +87,7 @@ class FloatConst : public ExpAst {
         x = n;
         type="float";
         isConst=1;
+        myTab=currTab;
     }
 
     void print(int level){
@@ -99,6 +103,7 @@ class StringConst : public ExpAst {
     StringConst(string n){
         x = n;
         isConst=1;
+        myTab=currTab;
     }
 
     void print(int level){
@@ -113,6 +118,7 @@ class Identifier : public ExpAst {
     string x;
     Identifier(string n){
         x = n;
+        myTab=currTab;
     }
 
     void print(int level){
@@ -135,6 +141,7 @@ class Return : public StmtAst{
         ExpAst *retExp;
         Return(ExpAst *x){
             retExp = x;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -151,6 +158,7 @@ class Op1 : public ExpAst{
         Op1(string w, ExpAst *x){
             operat = w;
             restExp = x;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -169,6 +177,7 @@ class Op2 : public ExpAst{
             operat = w;
             leftExp = x;
             rightExp = y;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -185,6 +194,7 @@ class Assign : public ExpAst{
         Assign(ExpAst *x,ExpAst *y){
             lExp = x;
             rightExp = y;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -201,10 +211,12 @@ class Funcall : public ExpAst{
         Funcall(Identifier *w, list<ExpAst *> x){
             funName = w;
             expList = x;
+            myTab=currTab;
         }
         Funcall(Identifier *w, list<ExpAst *>* x){
             funName = w;
             expList = *x;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -240,14 +252,16 @@ class Seq : public StmtAst{
         list<StmtAst *> stmtList;
         Seq(list<StmtAst *> x){
             stmtList = x;
+            myTab=currTab;
         }
         Seq(list<StmtAst *>* x){
             stmtList = *x;
+            myTab=currTab;
         }
 
         void print(int level){
             cout << string(level, '\t');
-            cout<<"(Seq " << endl; 
+            cout<<"(Seq " <<myTab->name<< endl; 
             for(list<StmtAst *>::iterator it = stmtList.begin(); it != stmtList.end(); it++)
             {
                 (*it)->print(level+1);
@@ -268,6 +282,7 @@ class If : public StmtAst{
             IfExp = x;
             thenStmt = y;
             elseStmt = z;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -296,6 +311,7 @@ class For : public StmtAst{
             condExp = x;
             incExp = y;
             bodyStmt = z;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -322,6 +338,7 @@ class While : public StmtAst{
         While(ExpAst *x,StmtAst *y){
             whileExp = x;
             thenStmt = y;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -337,6 +354,7 @@ class Pointer : public ExpAst{
         ExpAst *exp;
         Pointer(ExpAst *x){
             exp = x;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -351,6 +369,7 @@ class Deref : public ExpAst{
         ExpAst *exp;
         Deref(ExpAst *x){
             exp = x;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -367,6 +386,7 @@ class ArrayRef : public ExpAst{
         ArrayRef(ExpAst *x,ExpAst *y){
             varIdent = x;
             exp = y;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -386,6 +406,7 @@ class Member : public ExpAst{
         Member(ExpAst *x,Identifier *y){
             varIdent = x;
             id = y;
+            myTab=currTab;
         }
 
         void print(int level){
@@ -405,6 +426,7 @@ class Arrow : public ExpAst{
         Arrow(ExpAst *x,Identifier *y){
             varIdent = x;
             id = y;
+            myTab=currTab;
         }
 
         void print(int level){
