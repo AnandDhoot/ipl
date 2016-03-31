@@ -1,7 +1,7 @@
 all:   clean Scanner.ih Scanner.h Scannerbase.h lex.cc parse.cc main.cc Parser.h Parserbase.h Parser.ih
 	@sed -i 's/error(\"Syntax error\");/cerr << \"Syntax error at \" << lineNum << endl; exit(230);/' parse.cc;
 	g++  -g --std=c++0x lex.cc parse.cc main.cc -o parser
-	./parser < test.c > junk
+	# ./parser < test.c > junk
         
 Scanner.ih: lex.l
 	@if [ ! -e Scanner.ih ]; then \
