@@ -3,6 +3,7 @@
 #include <string>
 #include <list>
 #include <sstream>
+#include <fstream>
 #include "st.h"
 using namespace std;
 
@@ -18,6 +19,7 @@ extern int offset;
 extern int maxParamOffset;
 extern bool isStruct;
 extern string structName;
+extern ofstream fout;
 class abstract_astnode
 {
 public:
@@ -179,7 +181,17 @@ class Op2 : public ExpAst{
             rightExp = y;
             myTab=currTab;
         }
+        void genCode(){
 
+            leftExp->genCode();
+            rightExp->genCode();
+            fout<<"lw $t0,0($sp)\n";
+            fout<<"lw $t1,4($sp)\n";
+            fout<<"add $t0,$t1,$t0\n";
+            fout<<"addi $sp,$sp,4\n";
+            fout<<"sw $t0,0($sp)\n";
+
+        }
         void print(int level){
             cout << string(level, '\t');
             cout<<"("<<operat<<" " ; leftExp->print(0); rightExp->print(0); cout<<")";

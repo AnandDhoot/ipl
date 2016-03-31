@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include "Parser.h"
 using namespace std;
@@ -15,9 +16,12 @@ int offset = -4;
 int maxParamOffset = 0;
 bool isStruct = false;
 string structName;
+ofstream fout;
+
 int main (int argc, char** arg)
 {
 	currTab->parent = &globTab;
+	fout.open ("code.txt");
 	Parser parser;
 	parser.parse();
 }
