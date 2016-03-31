@@ -72,6 +72,15 @@ function_definition
 			// globTab.sym[currTab->name] = s;
 			parsingFun = true;
 
+
+			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
+			{
+				if(iterator->second->scope == "local")
+					iterator->second->offset = iterator->second->offset - iterator->second->size;
+				else
+					iterator->second->offset = iterator->second->offset - iterator->second->size + 4;
+			}
+
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
 			currTab->parent = &globTab;
