@@ -85,6 +85,7 @@ function_definition
 			currTab = newSymTab;
 			currTab->parent = &globTab;
 			offset = -4;
+
 		}
 	;
 
@@ -475,6 +476,7 @@ expression
 			}
 			$$->type = "int";
 			$$->isConst=1;
+			$$->genCode();
 		}	
     ;
 
