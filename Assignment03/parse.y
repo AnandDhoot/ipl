@@ -462,6 +462,7 @@ expression
 				}
 				if(temp->type!=$3->type)
 				{
+					cerr << temp->type << " --- " << $3->type << endl;
 					// Case to handle assingments of structs. 
 					if(currTab->inScope(temp->type)==NULL && currTab->inScope($3->type)==NULL)
 						$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
@@ -476,6 +477,7 @@ expression
 			}
 			$$->type = "int";
 			$$->isConst=1;
+
 			$$->genCode();
 		}	
     ;

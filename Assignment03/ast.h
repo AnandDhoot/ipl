@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <stdio.h>
 #include <string>
 #include <list>
@@ -49,7 +50,7 @@ class ExpAst : public abstract_astnode {
     std::vector<int> dim;
     bool isConst=0,isLval;;
     virtual void print (int level){}
-    void genCode(){}
+    virtual void genCode(){}
 };
 
 class StmtAst : public abstract_astnode {
@@ -79,6 +80,10 @@ class IntConst : public ExpAst {
             cout << string(level, '\t');
         cout<<"(IntConst "<<x<<")";
     }
+
+    void genCode(){
+        fout << x << " ---Int Constant---" << endl;
+    }
 };
 
 class FloatConst : public ExpAst {
@@ -96,6 +101,10 @@ class FloatConst : public ExpAst {
         cout << string(level, '\t');
         cout<<"(FloatConst "<<x<<")";
     }
+
+    void genCode(){
+        fout << x << " ---Float Constant---" << endl;
+    }
 };
 
 class StringConst : public ExpAst {
@@ -112,6 +121,10 @@ class StringConst : public ExpAst {
         cout << string(level, '\t');
         cout<<"(StringConst "<<x<<")";
     }
+
+    void genCode(){
+        fout << x << " ---String Constant---" << endl;
+    }
 };
 
 class Identifier : public ExpAst {
@@ -127,6 +140,10 @@ class Identifier : public ExpAst {
         cout << string(level, '\t');
         cout<<"(Id \""<<x<<"\")";
     }
+
+    void genCode(){
+        fout << x << " ---Identifier---" << endl;
+    }
 };
 
 class Empty : public StmtAst{
@@ -134,6 +151,10 @@ class Empty : public StmtAst{
         void print (int level){
             cout << string(level, '\t');
             cout<<"(Empty)";
+        }
+
+        void genCode(){
+            
         }
 };
 
@@ -149,6 +170,10 @@ class Return : public StmtAst{
         void print(int level){
             cout << string(level, '\t');
             cout<<"(Return "; retExp->print(0); cout<<")";
+        }
+
+        void genCode(){
+            retExp->genCode();
         }
 };
 
@@ -167,6 +192,11 @@ class Op1 : public ExpAst{
             cout << string(level, '\t');
             cout<<"("<<operat<<" " ; restExp->print(0); cout<<")";
         }
+
+        void genCode(){
+            fout << operat << " ---Unary---" << endl;
+            restExp->genCode();
+        }
 };
 
 class Op2 : public ExpAst{
@@ -181,20 +211,20 @@ class Op2 : public ExpAst{
             rightExp = y;
             myTab=currTab;
         }
-        void genCode(){
-
-            leftExp->genCode();
-            rightExp->genCode();
-            fout<<"lw $t0,0($sp)\n";
-            fout<<"lw $t1,4($sp)\n";
-            fout<<"add $t0,$t1,$t0\n";
-            fout<<"addi $sp,$sp,4\n";
-            fout<<"sw $t0,0($sp)\n";
-
-        }
         void print(int level){
             cout << string(level, '\t');
             cout<<"("<<operat<<" " ; leftExp->print(0); rightExp->print(0); cout<<")";
+        }
+        void genCode(){
+            leftExp->genCode();
+            rightExp->genCode();
+            fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
+            fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
+            fout << setw(7) << left << "add" << setw(7) << left << "$t0, $t1, $t0" << endl;
+
+            fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
+            fout << setw(7) << left << "sw" << setw(7) << left << "$t0, 0($sp)" << endl;
+            fout << endl;
         }
 };
 
@@ -217,13 +247,14 @@ class Assign : public ExpAst{
         void genCode(){
             lExp->genCode();
             rightExp->genCode();
-            fout << "lw $t0, 0($sp)" << endl;
-            fout << "lw $t1, 4($sp)" << endl;
-            fout << "addi $sp, $sp, -8" << endl;
+            fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
+            fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
+            fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, -8" << endl;
 
-            fout << "sw $t1, 0($t0)" << endl;
-            fout << "addi $sp, $sp, 4" << endl;
-            fout << "sw $1, 0($sp)" << endl;
+            fout << setw(7) << left << "sw" << setw(7) << left << "$t1, 0($t0)" << endl;
+            fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
+            fout << setw(7) << left << "sw" << setw(7) << left << "$1, 0($sp)" << endl;
+            fout << endl;
         }
 };
 
@@ -254,6 +285,15 @@ class Funcall : public ExpAst{
             cout << string(level, '\t');
             cout<<")";
         }
+
+        void genCode(){
+            fout << "NewFun" << ":" << endl;
+            funName->genCode();
+            for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
+            {
+                (*it)->genCode();
+            }
+        }
 };
 
 class Ass : public StmtAst{
@@ -267,6 +307,10 @@ class Ass : public StmtAst{
         void print(int level){
             cout << std::string(level, '\t');
             cout<<"(Assign_exp " ; Exp->print(0); cout<<")";
+        }
+
+        void genCode(){
+            Exp->genCode();
         }
 };
 
@@ -294,6 +338,13 @@ class Seq : public StmtAst{
             cout << string(level, '\t');
             cout<<")";
         }
+
+        void genCode(){
+            for(list<StmtAst *>::iterator it = stmtList.begin(); it != stmtList.end(); it++)
+            {
+                (*it)->genCode();
+            }
+        }
 };
 
 class If : public StmtAst{
@@ -320,6 +371,12 @@ class If : public StmtAst{
             cout << endl;
             cout << string(level, '\t');
             cout<<")";
+        }
+
+        void genCode(){
+            IfExp->genCode();
+            thenStmt->genCode();
+            elseStmt->genCode();
         }
 };
 
@@ -352,6 +409,13 @@ class For : public StmtAst{
             cout << string(level, '\t');
             cout<<")" << endl;
         }
+
+        void genCode(){
+            initExp->genCode();
+            condExp->genCode();
+            incExp->genCode();
+            bodyStmt->genCode();
+        }
 };
 
 class While : public StmtAst{
@@ -370,6 +434,11 @@ class While : public StmtAst{
             cout<<"(While " << endl; whileExp->print(level+1); cout << endl; thenStmt->print(level+1); cout << endl;
             cout << string(level, '\t'); cout<<")" << endl;
         }
+
+        void genCode(){
+            whileExp->genCode();
+            thenStmt->genCode();
+        }
 };
 
 class Pointer : public ExpAst{
@@ -385,6 +454,10 @@ class Pointer : public ExpAst{
             cout << string(level, '\t');
             cout<<"(Pointer "; exp->print(0); cout<<")";
         }
+
+        void genCode(){
+            exp->genCode();
+        }
 };
 
 class Deref : public ExpAst{
@@ -399,6 +472,9 @@ class Deref : public ExpAst{
         void print(int level){
             cout << string(level, '\t');
             cout<<"(Deref "; exp->print(0); cout<<")";
+        }
+        void genCode(){
+            exp->genCode();
         }
 };
 
@@ -420,6 +496,11 @@ class ArrayRef : public ExpAst{
             exp->print(0);
             cout<<")";
         }
+
+        void genCode(){
+            varIdent->genCode();
+            exp->genCode();
+        }
 };
 
 class Member : public ExpAst{
@@ -440,6 +521,11 @@ class Member : public ExpAst{
             id->print(0);
             cout<<")";
         }
+
+        void genCode(){
+            varIdent->genCode();
+            id->genCode();
+        }
 };
 
 class Arrow : public ExpAst{
@@ -459,5 +545,10 @@ class Arrow : public ExpAst{
             varIdent->print(0);
             id->print(0);
             cout<<")";
+        }
+
+        void genCode(){
+            varIdent->genCode();
+            id->genCode();
         }
 };

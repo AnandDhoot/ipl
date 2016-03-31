@@ -21,7 +21,8 @@ ofstream fout;
 int main (int argc, char** arg)
 {
 	currTab->parent = &globTab;
-	fout.open ("code.txt");
+	fout.open("code.txt", fstream::out);
 	Parser parser;
 	parser.parse();
+	fout.close();
 }
