@@ -201,6 +201,18 @@ class Assign : public ExpAst{
             cout << string(level, '\t');
                 cout<<"(Assign "; lExp->print(0);rightExp->print(0); cout<<")";
         }
+
+        void genCode(){
+            lExp->genCode();
+            rightExp->genCode();
+            fout << "lw $t0, 0($sp)" << endl;
+            fout << "lw $t1, 4($sp)" << endl;
+            fout << "addi $sp, $sp, -8" << endl;
+
+            fout << "sw $t1, 0($t0)" << endl;
+            fout << "addi $sp, $sp, 4" << endl;
+            fout << "sw $1, 0($sp)" << endl;
+        }
 };
 
 class Funcall : public ExpAst{
