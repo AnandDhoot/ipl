@@ -462,7 +462,6 @@ expression
 				}
 				if(temp->type!=$3->type)
 				{
-					cerr << temp->type << " --- " << $3->type << endl;
 					// Case to handle assingments of structs. 
 					if(currTab->inScope(temp->type)==NULL && currTab->inScope($3->type)==NULL)
 						$$ = new Assign(temp, new Op1("TO-"+temp->type,$3));
@@ -591,7 +590,7 @@ relational_expression
 				$$ = new Op2("LT-FLOAT", $1, $3);
 			else
 				$$ = new Op2("LT-INT", $1, $3);
-			$$->type=="int";
+			$$->type="int";
 			$$->isConst=1;
 		}
 	| relational_expression '>' additive_expression 
@@ -613,7 +612,7 @@ relational_expression
 				$$ = new Op2("GT-FLOAT", $1, $3);
 			else
 				$$ = new Op2("GT-INT", $1, $3);
-			$$->type=="int";
+			$$->type="int";
 			$$->isConst=1;
 		}
 	| relational_expression LE_OP additive_expression 
@@ -635,7 +634,7 @@ relational_expression
 				$$ = new Op2("LE-FLOAT", $1, $3);
 			else
 				$$ = new Op2("LE-INT", $1, $3);
-			$$->type=="int";
+			$$->type="int";
 			$$->isConst=1;
 		}
     | relational_expression GE_OP additive_expression 
@@ -658,7 +657,7 @@ relational_expression
 			else
 				$$ = new Op2("GE-INT", $1, $3);
 
-			$$->type=="int";
+			$$->type="int";
 			$$->isConst=1;
 		}
 	;
@@ -682,17 +681,18 @@ additive_expression
 					$$ = new Op2("Plus-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Plus-FLOAT", $1, new Op1("TO-"+$1->type,$3));
-				$$->type=="float";
+				$$->type="float";
 			}
 			else if($1->type == "float")
 			{
 				$$ = new Op2("Plus-FLOAT", $1, $3);
-				$$->type=="float";
+				$$->type="float";
 			}
 			else
 			{
 				$$ = new Op2("Plus-INT", $1, $3);
-				$$->type=="int";
+				$$->type="int";
+
 			}
 			$$->isConst=1;
 
@@ -711,17 +711,17 @@ additive_expression
 					$$ = new Op2("Minus-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Minus-FLOAT", $1, new Op1("TO-"+$1->type,$3));
-				$$->type=="float";
+				$$->type="float";
 			}
 			else if($1->type == "float")
 			{
 				$$ = new Op2("Minus-FLOAT", $1, $3);
-				$$->type=="float";
+				$$->type="float";
 			}
 			else
 			{
 				$$ = new Op2("Minus-INT", $1, $3);
-				$$->type=="int";
+				$$->type="int";
 			}
 			$$->isConst=1;
 
@@ -747,17 +747,17 @@ multiplicative_expression
 					$$ = new Op2("Multiply-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Multiply-FLOAT", $1, new Op1("TO-"+$1->type,$3));
-				$$->type=="float";
+				$$->type="float";
 			}
 			else if($1->type == "float")
 			{
 				$$ = new Op2("Multiply-FLOAT", $1, $3);
-				$$->type=="float";
+				$$->type="float";
 			}
 			else
 			{
 				$$ = new Op2("Multiply-INT", $1, $3);
-				$$->type=="int";
+				$$->type="int";
 			}
 			$$->isConst=1;
 		} 
@@ -776,17 +776,17 @@ multiplicative_expression
 					$$ = new Op2("Divide-FLOAT", new Op1("TO-"+$3->type,$1), $3);
 				else
 					$$ = new Op2("Divide-FLOAT", $1, new Op1("TO-"+$1->type,$3));
-				$$->type=="float";
+				$$->type="float";
 			}
 			else if($1->type == "float")
 			{
 				$$ = new Op2("Divide-FLOAT", $1, $3);
-				$$->type=="float";
+				$$->type="float";
 			}
 			else
 			{
 				$$ = new Op2("Divide-INT", $1, $3);
-				$$->type=="int";
+				$$->type="int";
 			}
 			$$->isConst=1;
 		}
