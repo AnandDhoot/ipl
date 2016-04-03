@@ -17,7 +17,7 @@ int maxParamOffset = 0;
 bool isStruct = false;
 string structName;
 ofstream fout;
-
+Registers r;
 int main (int argc, char** arg)
 {
 	currTab->parent = &globTab;

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include "st.h"
+#include "mips.h"
 using namespace std;
 
 extern Tb globTab;
@@ -21,6 +22,7 @@ extern int maxParamOffset;
 extern bool isStruct;
 extern string structName;
 extern ofstream fout;
+extern Registers r;
 class abstract_astnode
 {
 public:
@@ -48,7 +50,8 @@ class ExpAst : public abstract_astnode {
     string name;
     string base_type;
     std::vector<int> dim;
-    bool isConst=0,isLval;;
+    bool isConst=0,isLval;int offset;// iF exp is lval , offset wrt ebp;
+    string allotedReg,regToRestore;
     virtual void print (int level){}
     virtual void genCode(){}
 };
@@ -83,6 +86,22 @@ class IntConst : public ExpAst {
 
     void genCode(){
         fout << x << " ---Int Constant---" << endl;
+        string reg= r.getNewReg();
+        string t= " ,$0,";
+        if(reg==""){
+            reg=r.getUsedReg();
+            regToRestore=reg;
+            //store
+            fout<<"addi $sp,$sp,-4"<<endl;
+            fout<<"sw "<<reg<<",0($sp)"<<endl;
+            //load const
+            fout<<"addi "<<reg<<t<<x<<endl;
+            allotedReg=reg;
+        }
+        else{
+            fout<<"addi "<<reg<<t<<x<<endl;
+            allotedReg=reg;
+        }
     }
 };
 
@@ -217,14 +236,22 @@ class Op2 : public ExpAst{
         }
         void genCode(){
             leftExp->genCode();
-            rightExp->genCode();
-            fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
-            fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
-            fout << setw(7) << left << "add" << setw(7) << left << "$t0, $t1, $t0" << endl;
+            //restore reg if there 
 
-            fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
-            fout << setw(7) << left << "sw" << setw(7) << left << "$t0, 0($sp)" << endl;
-            fout << endl;
+            rightExp->genCode();
+            //restore reg if there 
+
+            //for add
+            fout<<"add "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<", "<<leftExp->allotedReg<<endl;
+            allotedReg=leftExp->allotedReg;
+            r.freeUpReg(rightExp->allotedReg);
+            // fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
+            // fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
+            // fout << setw(7) << left << "add" << setw(7) << left << "$t0, $t1, $t0" << endl;
+
+            // fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
+            // fout << setw(7) << left << "sw" << setw(7) << left << "$t0, 0($sp)" << endl;
+            // fout << endl;
         }
 };
 
@@ -247,14 +274,14 @@ class Assign : public ExpAst{
         void genCode(){
             lExp->genCode();
             rightExp->genCode();
-            fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
-            fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
-            fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, -8" << endl;
+            // fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
+            // fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
+            // fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, -8" << endl;
 
-            fout << setw(7) << left << "sw" << setw(7) << left << "$t1, 0($t0)" << endl;
-            fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
-            fout << setw(7) << left << "sw" << setw(7) << left << "$1, 0($sp)" << endl;
-            fout << endl;
+            // fout << setw(7) << left << "sw" << setw(7) << left << "$t1, 0($t0)" << endl;
+            // fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
+            // fout << setw(7) << left << "sw" << setw(7) << left << "$t1, 0($sp)" << endl;
+            // fout << endl;
         }
 };
 
