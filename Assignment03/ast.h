@@ -5,6 +5,7 @@
 #include <list>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include "st.h"
 #include "mips.h"
 using namespace std;
@@ -53,8 +54,10 @@ class ExpAst : public abstract_astnode {
     bool isConst=0,isLval;int offset;// iF exp is lval , offset wrt ebp;
     string allotedReg;
     bool regToRestore=0;
+    string storeAddr;
     virtual void print (int level){}
     virtual void genCode(){}
+    virtual void getAddr(){}
 };
 
 class StmtAst : public abstract_astnode {
@@ -166,7 +169,7 @@ class Identifier : public ExpAst {
         // TODO - Handle function calls
         if(s == NULL) {
             cerr << "Not present in symTab" << endl; }
-        cerr << myTab->name << " " << s->name << " " << s->offset << endl;
+        // cerr << myTab->name << " " << s->name << " " << s->offset << endl;
 
         string reg = r.getNewReg();
         if(reg==""){
@@ -183,7 +186,30 @@ class Identifier : public ExpAst {
             fout << "lw " << reg << ", " << s->offset << "($fp)" << endl;
             allotedReg = reg;
         }
+    }
+   
+    void getAddr() {
+        symbol *s = myTab->sym[x];
+        if(s == NULL) {
+            cerr << "Not present in symTab" << endl; }
+        cerr << myTab->name << " " << s->name << " " << s->offset << endl;
 
+        string reg = r.getNewReg();
+        if(reg==""){
+            reg = r.getUsedReg();
+            regToRestore = 1;
+            //store
+            fout << "addi $sp, $sp, -4" << endl;
+            fout << "sw "<<reg<<", 0($sp)"<<endl;
+            //load const
+            fout << "addi " << reg << ", $fp, " << s->offset << endl;
+            allotedReg = reg;
+        }
+        else{
+            fout << "addi " << reg << ", $fp, " << s->offset << endl;
+            allotedReg = reg;
+        }
+        cerr << "-------------" << allotedReg << endl;
     }
 };
 
@@ -258,9 +284,7 @@ class Op2 : public ExpAst{
         }
         void genCode(){
             leftExp->genCode();
-            //restore reg if there             
             rightExp->genCode();
-            //restore reg if there 
 
             //for add
             if(operat=="Plus-INT")
@@ -271,23 +295,16 @@ class Op2 : public ExpAst{
             }
             if(rightExp->regToRestore){
                 //restore right 
-                fout<<"lw"<<rightExp->allotedReg<<",$sp"<<endl;
-                fout<<"addi $sp,$sp,4"<<endl;
+                fout<<"lw "<<rightExp->allotedReg<<", 0($sp)"<<endl;
+                fout<<"addi $sp, $sp, 4"<<endl;
                 //now leftExp stored reg on TOS
-
             }
+            else
+                r.freeUpReg(rightExp->allotedReg);
             if(leftExp->regToRestore){
                 regToRestore=1;
             }
             allotedReg=leftExp->allotedReg;
-            r.freeUpReg(rightExp->allotedReg);
-            // fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
-            // fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
-            // fout << setw(7) << left << "add" << setw(7) << left << "$t0, $t1, $t0" << endl;
-
-            // fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
-            // fout << setw(7) << left << "sw" << setw(7) << left << "$t0, 0($sp)" << endl;
-            // fout << endl;
         }
 };
 
@@ -308,16 +325,23 @@ class Assign : public ExpAst{
         }
 
         void genCode(){
-            lExp->genCode();
+            lExp->getAddr();
             rightExp->genCode();
-            // fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
-            // fout << setw(7) << left << "lw" << setw(7) << left << "$t1, 4($sp)" << endl;
-            // fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, -8" << endl;
+            fout << "sw " << rightExp->allotedReg << ", 0(" << lExp->allotedReg << ")" << endl;
 
-            // fout << setw(7) << left << "sw" << setw(7) << left << "$t1, 0($t0)" << endl;
-            // fout << setw(7) << left << "addi" << setw(7) << left << "$sp, $sp, 4" << endl;
-            // fout << setw(7) << left << "sw" << setw(7) << left << "$t1, 0($sp)" << endl;
-            // fout << endl;
+            if(rightExp->regToRestore){
+                //restore right 
+                fout<<"lw"<<rightExp->allotedReg<<", 0($sp)"<<endl;
+                fout<<"addi $sp,$sp,4"<<endl;
+                //now leftExp stored reg on TOS
+            }
+            else
+                r.freeUpReg(rightExp->allotedReg);
+            if(lExp->regToRestore){
+                regToRestore=1;
+            }
+            allotedReg=lExp->allotedReg;
+            fout << "addi " << allotedReg << ", $0, $1" << endl;
         }
 };
 
@@ -406,6 +430,12 @@ class Seq : public StmtAst{
             for(list<StmtAst *>::iterator it = stmtList.begin(); it != stmtList.end(); it++)
             {
                 (*it)->genCode();
+                while(true)
+                {
+                    string reg = r.getUsedReg();
+                    if(reg == "") break;
+                    r.freeUpReg(reg);
+                }
             }
         }
 };
@@ -588,6 +618,18 @@ class Member : public ExpAst{
         void genCode(){
             varIdent->genCode();
             id->genCode();
+        }
+
+        void getAddr() {
+            varIdent->getAddr();
+                    cerr << varIdent->type << endl;
+            Tb* someTab = globTab.sym[varIdent->type]->symtab;
+            symbol *s = someTab->sym[id->x];
+            fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
+                << ", " << s->offset << endl;
+
+            allotedReg = varIdent->allotedReg;
+            regToRestore = varIdent->regToRestore;
         }
 };
 

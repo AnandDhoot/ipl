@@ -24,9 +24,9 @@ public:
 
 	string getNewReg(){
 		if(freeReg.size()>0){
-		string a= freeReg.front();
+		string a= freeReg.back();
 		usedReg.push_back(a);
-		freeReg.pop_front();
+		freeReg.pop_back();
 		return a;
 	}
 		return "";
@@ -50,4 +50,3 @@ public:
 
 
 };
-
