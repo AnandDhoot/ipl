@@ -11,7 +11,7 @@ public:
 
 	Registers(){
 
-		for(int i=8;i<25;i++){
+		for(int i=8;i<12;i++){
 			string a="$";
 			stringstream convert; // stringstream used for the conversion
 			convert << i;//add the value of Number to the characters in the stream
@@ -36,6 +36,7 @@ public:
 		if(usedReg.size()>0){
 		string a= usedReg.front();
 		usedReg.pop_front();
+		usedReg.push_back(a);
 		return a;
 	}
 		return "";

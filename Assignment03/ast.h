@@ -51,7 +51,8 @@ class ExpAst : public abstract_astnode {
     string base_type;
     std::vector<int> dim;
     bool isConst=0,isLval;int offset;// iF exp is lval , offset wrt ebp;
-    string allotedReg,regToRestore;
+    string allotedReg;
+    bool regToRestore=0;
     virtual void print (int level){}
     virtual void genCode(){}
 };
@@ -90,7 +91,7 @@ class IntConst : public ExpAst {
         string t= " ,$0,";
         if(reg==""){
             reg=r.getUsedReg();
-            regToRestore=reg;
+            regToRestore=1;
             //store
             fout<<"addi $sp,$sp,-4"<<endl;
             fout<<"sw "<<reg<<",0($sp)"<<endl;
@@ -236,13 +237,27 @@ class Op2 : public ExpAst{
         }
         void genCode(){
             leftExp->genCode();
-            //restore reg if there 
-
+            //restore reg if there             
             rightExp->genCode();
             //restore reg if there 
 
             //for add
+            if(operat=="Plus-INT")
             fout<<"add "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<", "<<leftExp->allotedReg<<endl;
+            else if(operat=="Multiply-INT"){
+            fout<<"mult "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
+            fout<<"mflo "<<leftExp->allotedReg<<endl;
+            }
+            if(rightExp->regToRestore){
+                //restore right 
+                fout<<"lw"<<rightExp->allotedReg<<",$sp"<<endl;
+                fout<<"addi $sp,$sp,4"<<endl;
+                //now leftExp stored reg on TOS
+
+            }
+            if(leftExp->regToRestore){
+                regToRestore=1;
+            }
             allotedReg=leftExp->allotedReg;
             r.freeUpReg(rightExp->allotedReg);
             // fout << setw(7) << left << "lw" << setw(7) << left << "$t0, 0($sp)" << endl;
