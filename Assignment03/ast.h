@@ -89,9 +89,9 @@ class IntConst : public ExpAst {
     }
 
     void genCode(){
-        // fout << x << " ---Int Constant---" << endl;
+         fout <<"#"<< x << " ---Int Constant---" << endl;
         string reg= r.getNewReg();
-        string t= " , $0, ";
+        string t= " , ";
         if(reg==""){
             reg=r.getUsedReg();
             regToRestore=1;
@@ -99,11 +99,11 @@ class IntConst : public ExpAst {
             fout<<"addi $sp, $sp, -4"<<endl;
             fout<<"sw "<<reg<<", 0($sp)"<<endl;
             //load const
-            fout<<"addi "<<reg<<t<<x<<endl;
+            fout<<"li "<<reg<<t<<x<<endl;
             allotedReg=reg;
         }
         else{
-            fout<<"addi "<<reg<<t<<x<<endl;
+            fout<<"li "<<reg<<t<<x<<endl;
             allotedReg=reg;
         }
     }
@@ -126,7 +126,25 @@ class FloatConst : public ExpAst {
     }
 
     void genCode(){
-        fout << x << " ---Float Constant---" << endl;
+        fout <<"#"<< x << " ---Float Constant---" << endl;
+        string reg= r.getNewReg();
+        string t= " , $0, ";
+        if(reg==""){
+            reg=r.getUsedReg();
+            regToRestore=1;
+            //store
+            fout<<"addi $sp, $sp, -4"<<endl;
+            fout<<"sw "<<reg<<", 0($sp)"<<endl;
+            //load const
+            fout<<"li.s $f1, "<<x<<endl;
+            fout<<"mfc1 "<<reg<<", $f1"<<endl;
+            allotedReg=reg;
+        }
+        else{
+            fout<<"li.s $f1, "<<x<<endl;
+            fout<<"mfc1 "<<reg<<", $f1"<<endl;
+            allotedReg=reg;
+        }
     }
 };
 
@@ -261,8 +279,19 @@ class Op1 : public ExpAst{
         }
 
         void genCode(){
-            fout << operat << " ---Unary---" << endl;
+            regToRestore=restExp->regToRestore;
+            fout <<"#"<< operat << " ---Unary---" << endl;
             restExp->genCode();
+            if(operat=="TO-float"){
+                fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
+                fout<<"cvt.s.w $f1, $f1"<<endl;
+                fout<<"mfc1 "<<restExp->allotedReg<<",$f1"<<endl;
+            }
+            else if(operat=="TO-int"){
+                fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
+                fout<<"cvt.w.s $f1, $f1"<<endl;
+                fout<<"mfc1 "<<restExp->allotedReg<<",$f1"<<endl;
+            }
         }
 };
 
@@ -289,10 +318,46 @@ class Op2 : public ExpAst{
             //for add
             if(operat=="Plus-INT")
             fout<<"add "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<", "<<leftExp->allotedReg<<endl;
+            else if(operat=="Minus-INT"){
+            fout<<"sub "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<", "<<leftExp->allotedReg<<endl;
+            }
             else if(operat=="Multiply-INT"){
             fout<<"mult "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
             fout<<"mflo "<<leftExp->allotedReg<<endl;
             }
+            else if(operat=="Divide-INT"){
+            fout<<"div "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
+            fout<<"mflo "<<leftExp->allotedReg<<endl;
+            }
+            else if(operat=="Plus-FLOAT"){
+
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"add.s $f2,$f1,$f2"<<endl;
+                fout<<"mfc1 "<<leftExp->allotedReg<<",$f2"<<endl;
+            }
+            else if(operat=="Minus-FLOAT"){
+
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"sub.s $f2,$f1,$f2"<<endl;
+                fout<<"mfc1 "<<leftExp->allotedReg<<",$f2"<<endl;
+            }
+            else if(operat=="Multiply-FLOAT"){
+
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"mul.s $f2,$f1,$f2"<<endl;
+                fout<<"mfc1 "<<leftExp->allotedReg<<",$f2"<<endl;
+            }
+            else if(operat=="Divide-FLOAT"){
+
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"dive.s $f2,$f1,$f2"<<endl;
+                fout<<"mfc1 "<<leftExp->allotedReg<<",$f2"<<endl;
+            }
+            //TODO support <=,>= etc etc.
             if(rightExp->regToRestore){
                 //restore right 
                 fout<<"lw "<<rightExp->allotedReg<<", 0($sp)"<<endl;
