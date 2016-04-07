@@ -86,6 +86,8 @@ function_definition
 			currTab->parent = &globTab;
 			offset = -4;
 
+			($4)->print(0);std::cout<<std::endl;
+			($4)->genCode();
 		}
 	;
 
@@ -292,17 +294,16 @@ compound_statement
 	: '{' '}'
 		{
 			$$ = new Seq(new list<StmtAst*>());
-			($$)->print(0);std::cout<<std::endl;
 		}
 	| '{' statement_list '}'
 		{
 			$$ = new Seq($2);
-			($$)->print(0);std::cout<<std::endl;
+			//($$)->print(0);std::cout<<std::endl;
 		}
  	| '{' declaration_list statement_list '}'
 		{
 			$$ = new Seq($3);
-			($$)->print(0);std::cout<<std::endl;
+			//($$)->print(0);std::cout<<std::endl;
 		}
 	;
 
@@ -476,8 +477,6 @@ expression
 			}
 			$$->type = "int";
 			$$->isConst=1;
-
-			$$->genCode();
 		}	
     ;
 

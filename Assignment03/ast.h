@@ -59,7 +59,7 @@ class ExpAst : public abstract_astnode {
 class StmtAst : public abstract_astnode {
     public:
     virtual void print (int level){}
-    void genCode(){}
+    virtual void genCode(){}
 };
 
 class RefAst : public ExpAst {
@@ -85,15 +85,15 @@ class IntConst : public ExpAst {
     }
 
     void genCode(){
-        fout << x << " ---Int Constant---" << endl;
+        // fout << x << " ---Int Constant---" << endl;
         string reg= r.getNewReg();
-        string t= " ,$0,";
+        string t= " , $0, ";
         if(reg==""){
             reg=r.getUsedReg();
             regToRestore=reg;
             //store
-            fout<<"addi $sp,$sp,-4"<<endl;
-            fout<<"sw "<<reg<<",0($sp)"<<endl;
+            fout<<"addi $sp, $sp, -4"<<endl;
+            fout<<"sw "<<reg<<", 0($sp)"<<endl;
             //load const
             fout<<"addi "<<reg<<t<<x<<endl;
             allotedReg=reg;
@@ -161,7 +161,28 @@ class Identifier : public ExpAst {
     }
 
     void genCode(){
-        fout << x << " ---Identifier---" << endl;
+        symbol *s = myTab->sym[x];
+        // TODO - Handle function calls
+        if(s == NULL) {
+            cerr << "Not present in symTab" << endl; }
+        cerr << myTab->name << " " << s->name << " " << s->offset << endl;
+
+        string reg = r.getNewReg();
+        if(reg==""){
+            reg = r.getUsedReg();
+            regToRestore = 1;
+            //store
+            fout << "addi $sp, $sp, -4" << endl;
+            fout << "sw "<<reg<<", 0($sp)"<<endl;
+            //load const
+            fout << "lw " << reg << ", " << s->offset << "($fp)" << endl;
+            allotedReg = reg;
+        }
+        else{
+            fout << "lw " << reg << ", " << s->offset << "($fp)" << endl;
+            allotedReg = reg;
+        }
+
     }
 };
 
