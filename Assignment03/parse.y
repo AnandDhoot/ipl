@@ -143,7 +143,7 @@ type_specifier                   // This is the information
 		{	
 			type0 = "float";
 			type1 = "float";
-			currSize = 8;
+			currSize = 4;
     		if(parsingFun)
     		{
     			currTab->returnType = type0;
