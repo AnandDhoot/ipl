@@ -207,10 +207,11 @@ class Identifier : public ExpAst {
     }
    
     void getAddr() {
+
         symbol *s = myTab->sym[x];
         if(s == NULL) {
             cerr << "Not present in symTab" << endl; }
-        cerr << myTab->name << " " << s->name << " " << s->offset << endl;
+        // cerr << myTab->name << " " << s->name << " " << s->offset << endl;
 
         string reg = r.getNewReg();
         if(reg==""){
@@ -227,7 +228,7 @@ class Identifier : public ExpAst {
             fout << "addi " << reg << ", $fp, " << s->offset << endl;
             allotedReg = reg;
         }
-        cerr << "-------------" << allotedReg << endl;
+        // cerr << "-------------" << allotedReg << endl;
     }
 };
 
@@ -279,21 +280,27 @@ class Op1 : public ExpAst{
         }
 
         void genCode(){
-            fout <<"#"<< operat << " ---Unary---" << endl;
-            restExp->genCode();
-            regToRestore=restExp->regToRestore;
-            allotedReg=restExp->allotedReg;
+            fout <<"# "<< operat << " ---Unary---" << endl;
             if(operat=="TO-float"){
+                restExp->genCode();
+                regToRestore=restExp->regToRestore;
+                allotedReg=restExp->allotedReg;
                 fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
                 fout<<"cvt.s.w $f1, $f1"<<endl;
                 fout<<"mfc1 "<<restExp->allotedReg<<",$f1"<<endl;
             }
             else if(operat=="TO-int"){
+                restExp->genCode();
+                regToRestore=restExp->regToRestore;
+                allotedReg=restExp->allotedReg;
                 fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
                 fout<<"cvt.w.s $f1, $f1"<<endl;
                 fout<<"mfc1 "<<restExp->allotedReg<<",$f1"<<endl;
             }
             else if(operat=="uminus"){
+                restExp->genCode();
+                regToRestore=restExp->regToRestore;
+                allotedReg=restExp->allotedReg;
                 if(type=="float"){
                 fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
                 fout<<"li.s $f2,-1.0 "<<endl;
@@ -304,12 +311,21 @@ class Op1 : public ExpAst{
                 }
             }
             else if(operat=="NOT"){
+                restExp->genCode();
+                regToRestore=restExp->regToRestore;
+                allotedReg=restExp->allotedReg;
                 //TODO
                 if(type=="float"){
                 }
                 if(type=="int"){
 
                 }
+            }
+            else if(operat=="AddressOf")
+            {
+                restExp->getAddr();
+                regToRestore=restExp->regToRestore;
+                allotedReg=restExp->allotedReg;
             }
         }
 };
@@ -415,8 +431,8 @@ class Assign : public ExpAst{
 
             if(rightExp->regToRestore){
                 //restore right 
-                fout<<"lw"<<rightExp->allotedReg<<", 0($sp)"<<endl;
-                fout<<"addi $sp,$sp,4"<<endl;
+                fout<<"lw "<<rightExp->allotedReg<<", 0($sp)"<<endl;
+                fout<<"addi $sp, $sp, 4"<<endl;
                 //now leftExp stored reg on TOS
             }
             else
@@ -425,7 +441,7 @@ class Assign : public ExpAst{
                 regToRestore=1;
             }
             allotedReg=lExp->allotedReg;
-            fout << "addi " << allotedReg << ", $0,1" << endl;
+            fout << "li " << allotedReg << ", 1" << endl;
         }
 };
 
@@ -700,13 +716,20 @@ class Member : public ExpAst{
         }
 
         void genCode(){
-            varIdent->genCode();
-            id->genCode();
+            varIdent->getAddr();
+            Tb* someTab = globTab.sym[varIdent->type]->symtab;
+            symbol *s = someTab->sym[id->x];
+            fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
+                << ", " << s->offset << endl;
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")"<<endl;
+
+            allotedReg = varIdent->allotedReg;
+            regToRestore = varIdent->regToRestore;
         }
 
         void getAddr() {
             varIdent->getAddr();
-                    cerr << varIdent->type << endl;
+                    // cerr << varIdent->type << endl;
             Tb* someTab = globTab.sym[varIdent->type]->symtab;
             symbol *s = someTab->sym[id->x];
             fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
@@ -738,6 +761,30 @@ class Arrow : public ExpAst{
 
         void genCode(){
             varIdent->genCode();
-            id->genCode();
+
+            string typ = (varIdent->type).substr(0, (varIdent->type).size()-1);
+            Tb* someTab = globTab.sym[typ]->symtab;
+            symbol *s = someTab->sym[id->x];
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")"<<endl;
+            fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
+                << ", " << s->offset << endl;
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")"<<endl;
+
+            allotedReg = varIdent->allotedReg;
+            regToRestore = varIdent->regToRestore;
+        }
+
+        void getAddr(){
+            varIdent->genCode();
+
+            string typ = (varIdent->type).substr(0, (varIdent->type).size()-1);
+            Tb* someTab = globTab.sym[typ]->symtab;
+            symbol *s = someTab->sym[id->x];
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")"<<endl;
+            fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
+                << ", " << s->offset << endl;
+
+            allotedReg = varIdent->allotedReg;
+            regToRestore = varIdent->regToRestore;
         }
 };
