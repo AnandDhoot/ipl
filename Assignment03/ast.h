@@ -279,9 +279,10 @@ class Op1 : public ExpAst{
         }
 
         void genCode(){
-            regToRestore=restExp->regToRestore;
             fout <<"#"<< operat << " ---Unary---" << endl;
             restExp->genCode();
+            regToRestore=restExp->regToRestore;
+            allotedReg=restExp->allotedReg;
             if(operat=="TO-float"){
                 fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
                 fout<<"cvt.s.w $f1, $f1"<<endl;
@@ -291,6 +292,24 @@ class Op1 : public ExpAst{
                 fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
                 fout<<"cvt.w.s $f1, $f1"<<endl;
                 fout<<"mfc1 "<<restExp->allotedReg<<",$f1"<<endl;
+            }
+            else if(operat=="uminus"){
+                if(type=="float"){
+                fout<<"mtc1 "<<restExp->allotedReg<<",$f1"<<endl;
+                fout<<"li.s $f2,-1.0 "<<endl;
+                fout<<"mul.s $f1,$f1,$f2 "<<endl;
+                fout<<"mfc1 "<<restExp->allotedReg<<",$f1"<<endl;}
+                if(type=="int"){
+                    fout<<"sub "<<restExp->allotedReg<<",$0,"<<restExp->allotedReg<<endl;
+                }
+            }
+            else if(operat=="NOT"){
+                //TODO
+                if(type=="float"){
+                }
+                if(type=="int"){
+
+                }
             }
         }
 };
@@ -406,7 +425,7 @@ class Assign : public ExpAst{
                 regToRestore=1;
             }
             allotedReg=lExp->allotedReg;
-            fout << "addi " << allotedReg << ", $0, $1" << endl;
+            fout << "addi " << allotedReg << ", $0,1" << endl;
         }
 };
 

@@ -81,6 +81,7 @@ function_definition
 					iterator->second->offset = iterator->second->offset - iterator->second->size + 4;
 			}
 
+			fout<<currTab->name<<":\n";
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
 			currTab->parent = &globTab;
