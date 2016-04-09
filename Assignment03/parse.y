@@ -88,7 +88,9 @@ function_definition
 
 			fout<<currTab->name<<":\n";
 			fout<<"addi $sp,$sp,-4\n";
-			fout<<"sw $fp,$sp\n";
+			fout<<"sw $ra,0($sp)\n";
+			fout<<"addi $sp,$sp,-4\n";
+			fout<<"sw $fp,0($sp)\n";
 			fout<<"add $fp,$sp,$0\n";
 			//make space for locals
 			fout<<"addi $sp,$sp,"<<-localsWidth<<endl;
