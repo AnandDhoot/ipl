@@ -16,7 +16,10 @@
 %%
 
 complete_code
-	: translation_unit
+	:{
+		fout<<".text\n .globl main\n";
+	} 
+	translation_unit
 		{
 			globTab.name = "Global Symbol Table";
 			globTab.recPrint();
@@ -71,17 +74,25 @@ function_definition
 			// symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
 			// globTab.sym[currTab->name] = s;
 			parsingFun = true;
-
+			int localsWidth=0;
 
 			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
 			{
-				if(iterator->second->scope == "local")
-					iterator->second->offset = iterator->second->offset - iterator->second->size;
+				if(iterator->second->scope == "local"){
+					iterator->second->offset = iterator->second->offset - iterator->second->size+4;
+					localsWidth+=iterator->second->size;
+				}
 				else
-					iterator->second->offset = iterator->second->offset - iterator->second->size + 4;
+					iterator->second->offset = iterator->second->offset - iterator->second->size + 8;
 			}
 
 			fout<<currTab->name<<":\n";
+			fout<<"addi $sp,$sp,-4\n";
+			fout<<"sw $fp,$sp\n";
+			fout<<"add $fp,$sp,$0\n";
+			//make space for locals
+			fout<<"addi $sp,$sp,"<<-localsWidth<<endl;
+			//store shit
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
 			currTab->parent = &globTab;
@@ -89,6 +100,12 @@ function_definition
 
 			($4)->print(0);std::cout<<std::endl;
 			($4)->genCode();
+			//restore shit
+			fout<<"addi $sp,$fp,4\n";
+			fout<<"lw $fp,0($fp)\n";
+			fout<<"lw $ra,0($sp)\n";
+			fout<<"addi $sp,$sp,-4\n";
+			fout<<"jr $ra";
 		}
 	;
 

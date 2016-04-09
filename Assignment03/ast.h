@@ -43,8 +43,6 @@ protected:
 private:
 // typeExp astnode_type;
 } ;
-
-
 class ExpAst : public abstract_astnode {
     public:
     string type;
@@ -136,12 +134,12 @@ class FloatConst : public ExpAst {
             fout<<"addi $sp, $sp, -4"<<endl;
             fout<<"sw "<<reg<<", 0($sp)"<<endl;
             //load const
-            fout<<"li.s $f1, "<<x<<endl;
+            fout<< fixed << setprecision(6)<<"li.s $f1, "<<x<<endl;
             fout<<"mfc1 "<<reg<<", $f1"<<endl;
             allotedReg=reg;
         }
         else{
-            fout<<"li.s $f1, "<<x<<endl;
+            fout<< fixed << setprecision(6)<<"li.s $f1, "<<x<<endl;
             fout<<"mfc1 "<<reg<<", $f1"<<endl;
             allotedReg=reg;
         }
@@ -551,9 +549,23 @@ class If : public StmtAst{
         }
 
         void genCode(){
+            string l1 =r.genLabel();
+            string l2 = r.genLabel();
             IfExp->genCode();
+            //TODO chk if works with ptrs
+            if(IfExp->type!="float")
+            fout<<"beq $0,"<<IfExp->allotedReg<<" "<<l1<<endl;
+            else{
+                fout<<"mtc1 "<<IfExp->allotedReg<<",$f1\n";
+                fout<<"li.s $f2,0.0\n";
+                fout<<"c.eq.s $f1,$f2\n";
+                fout<<"bc1f "<<l1<<endl;
+            }
             thenStmt->genCode();
+            fout<<"j "<<l2<<endl;
+            fout<<l1<<":\n";
             elseStmt->genCode();
+            fout<<l2<<":\n";
         }
 };
 

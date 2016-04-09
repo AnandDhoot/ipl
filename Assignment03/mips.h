@@ -3,12 +3,21 @@
 #include <sstream>
 using namespace std;
 
-
 class Registers{
 public:
 	list<string> freeReg;
 	list<string> usedReg;
 
+string genLabel(){
+
+    static int x =0;
+    string a;
+    stringstream convert; // stringstream used for the conversion
+    convert<<"L";
+    convert << x;//add the value of Number to the characters in the stream
+    x++;
+    return convert.str();
+}
 	Registers(){
 
 		for(int i=8;i<12;i++){
