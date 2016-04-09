@@ -1055,12 +1055,13 @@ postfix_expression
     	}
 	| postfix_expression INC_OP
 		{
-			$$ = new Op1("PlusPlus", $1);
-			if($1->isLval==0){
+			ExpAst* temp = $1;
+			if(temp->isLval==0){
 				cerr << "Increment Op not allowed for type Error at line " << lineNum << endl;
     			exit(1241);
 			}
-			$$->type=$1->type;
+			$$ = new Op1("PlusPlus", temp);
+			$$->type=temp->type;
 			$$->isConst=1;
     		$$->isLval=0;
 		}		

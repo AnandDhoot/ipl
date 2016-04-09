@@ -322,8 +322,41 @@ class Op1 : public ExpAst{
             else if(operat=="AddressOf")
             {
                 restExp->getAddr();
-                regToRestore=restExp->regToRestore;
                 allotedReg=restExp->allotedReg;
+                regToRestore=restExp->regToRestore;
+            }
+            else if(operat=="PlusPlus")
+            {
+                restExp->getAddr();
+
+
+                string reg = r.getNewReg();
+                if(reg==""){
+                    reg = r.getUsedReg();
+                    regToRestore = 1;
+                    //store
+                    fout << "addi $sp, $sp, -4" << endl;
+                    fout << "sw " << reg << ", 0($sp)" << endl;
+                    //load const
+                    fout << "lw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
+                    fout << "addi " << reg << ", " << reg << ", 1" << endl;
+                    fout << "sw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
+                    fout << "move " << restExp->allotedReg << ", " << reg <<endl;
+                    //restore
+                    fout << "lw "<< reg <<", 0($sp)" << endl;
+                    fout << "addi $sp, $sp, 4" << endl;
+                    r.freeUpReg(reg);
+                    regToRestore = 0;
+                }
+                else{
+                    fout << "lw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
+                    fout << "addi " << reg << ", " << reg << ", 1" << endl;
+                    fout << "sw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
+                    fout << "move " << restExp->allotedReg << ", " << reg <<endl;
+                }
+
+                allotedReg=restExp->allotedReg;
+                regToRestore=restExp->regToRestore;
             }
         }
 };
@@ -680,6 +713,15 @@ class Deref : public ExpAst{
         }
         void genCode(){
             exp->genCode();
+            fout << "lw " << exp->allotedReg << ", 0(" << exp->allotedReg << ")"<<endl;
+            allotedReg=exp->allotedReg;
+            regToRestore=exp->regToRestore;
+        }
+        void getAddr(){
+            exp->genCode();
+            // fout << "lw " << exp->allotedReg << ", 0(" << exp->allotedReg << ")"<<endl;
+            allotedReg=exp->allotedReg;
+            regToRestore=exp->regToRestore;
         }
 };
 

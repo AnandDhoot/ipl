@@ -5,11 +5,12 @@ struct asfj {
 };
 
 int main(int a[5], int b[3]) {
-	int f1, g;
+	int f2, f1, *g;
 	struct asfj df;
 	struct asfj *rg;
-	df.c1 = 1;
-	rg = &df;
-	rg->c1 = f1;
+	f2 = 10;
+	g = &f1;
+	*g = 1;
+	f1 = (*g)++;
 	return f1;
 }
