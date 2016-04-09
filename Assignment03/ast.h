@@ -329,7 +329,6 @@ class Op1 : public ExpAst{
             {
                 restExp->getAddr();
 
-
                 string reg = r.getNewReg();
                 if(reg==""){
                     reg = r.getUsedReg();
@@ -346,7 +345,6 @@ class Op1 : public ExpAst{
                     //restore
                     fout << "lw "<< reg <<", 0($sp)" << endl;
                     fout << "addi $sp, $sp, 4" << endl;
-                    r.freeUpReg(reg);
                     regToRestore = 0;
                 }
                 else{
@@ -357,6 +355,7 @@ class Op1 : public ExpAst{
                     fout << "move " << restExp->allotedReg << ", " << reg <<endl;
                 }
 
+                r.freeUpReg(reg);
                 allotedReg=restExp->allotedReg;
                 regToRestore=restExp->regToRestore;
             }
