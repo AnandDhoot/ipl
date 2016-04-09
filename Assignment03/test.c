@@ -11,6 +11,6 @@ int main(int a[5], int b[3]) {
 	f2 = 10;
 	g = &f1;
 	*g = 1;
-	f1 = (*g)++;
+	f1 = f2++ + f2;
 	return f1;
 }

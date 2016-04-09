@@ -341,6 +341,7 @@ class Op1 : public ExpAst{
                     fout << "lw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
                     fout << "addi " << reg << ", " << reg << ", 1" << endl;
                     fout << "sw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
+                    fout << "addi " << reg << ", " << reg << ", -1" << endl;
                     fout << "move " << restExp->allotedReg << ", " << reg <<endl;
                     //restore
                     fout << "lw "<< reg <<", 0($sp)" << endl;
@@ -352,6 +353,7 @@ class Op1 : public ExpAst{
                     fout << "lw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
                     fout << "addi " << reg << ", " << reg << ", 1" << endl;
                     fout << "sw " << reg << ", 0(" << restExp->allotedReg << ")"<<endl;
+                    fout << "addi " << reg << ", " << reg << ", -1" << endl;
                     fout << "move " << restExp->allotedReg << ", " << reg <<endl;
                 }
 
