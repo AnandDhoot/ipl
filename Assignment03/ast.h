@@ -457,23 +457,20 @@ class Assign : public ExpAst{
         }
 
         void genCode(){
-            lExp->getAddr();
             rightExp->genCode();
+            lExp->getAddr();
             fout << "sw " << rightExp->allotedReg << ", 0(" << lExp->allotedReg << ")" << endl;
 
-            if(rightExp->regToRestore){
-                //restore right 
-                fout<<"lw "<<rightExp->allotedReg<<", 0($sp)"<<endl;
+            if(lExp->regToRestore){
+                //restore left 
+                fout<<"lw "<<lExp->allotedReg<<", 0($sp)"<<endl;
                 fout<<"addi $sp, $sp, 4"<<endl;
-                //now leftExp stored reg on TOS
+                //now rightExp stored reg on TOS
             }
             else
-                r.freeUpReg(rightExp->allotedReg);
-            if(lExp->regToRestore){
-                regToRestore=1;
-            }
-            allotedReg=lExp->allotedReg;
-            fout << "li " << allotedReg << ", 1" << endl;
+                r.freeUpReg(lExp->allotedReg);
+            regToRestore=rightExp->regToRestore;
+            allotedReg=rightExp->allotedReg;
         }
 };
 
@@ -677,25 +674,6 @@ class While : public StmtAst{
         void genCode(){
             whileExp->genCode();
             thenStmt->genCode();
-        }
-};
-
-class Pointer : public ExpAst{
-
-    public:
-        ExpAst *exp;
-        Pointer(ExpAst *x){
-            exp = x;
-            myTab=currTab;
-        }
-
-        void print(int level){
-            cout << string(level, '\t');
-            cout<<"(Pointer "; exp->print(0); cout<<")";
-        }
-
-        void genCode(){
-            exp->genCode();
         }
 };
 
