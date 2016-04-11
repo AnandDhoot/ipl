@@ -87,9 +87,8 @@ function_definition
 			}
 
 			fout<<currTab->name<<":\n";
-			fout<<"addi $sp,$sp,-4\n";
-			fout<<"sw $ra,0($sp)\n";
-			fout<<"addi $sp,$sp,-4\n";
+			fout<<"addi $sp,$sp,-8\n";
+			fout<<"sw $ra,4($sp)\n";
 			fout<<"sw $fp,0($sp)\n";
 			fout<<"add $fp,$sp,$0\n";
 			//make space for locals
@@ -103,10 +102,9 @@ function_definition
 			($4)->print(0);std::cout<<std::endl;
 			($4)->genCode();
 			//restore shit
-			fout<<"addi $sp,$fp,4\n";
+			fout<<"lw $ra,4($fp)\n";
+			fout<<"addi $sp,$fp,8\n";
 			fout<<"lw $fp,0($fp)\n";
-			fout<<"lw $ra,0($sp)\n";
-			fout<<"addi $sp,$sp,-4\n";
 			fout<<"jr $ra";
 		}
 	;

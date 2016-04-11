@@ -382,19 +382,31 @@ class Op2 : public ExpAst{
             leftExp->genCode();
             rightExp->genCode();
 
-            //for add
+            //TODO - ADD EQ,NE
             if(operat=="Plus-INT")
             fout<<"add "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<", "<<leftExp->allotedReg<<endl;
             else if(operat=="Minus-INT"){
-            fout<<"sub "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<", "<<leftExp->allotedReg<<endl;
+            fout<<"sub "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<", "<<rightExp->allotedReg<<endl;
             }
             else if(operat=="Multiply-INT"){
-            fout<<"mult "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
-            fout<<"mflo "<<leftExp->allotedReg<<endl;
+            fout<<"mul "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
             }
             else if(operat=="Divide-INT"){
-            fout<<"div "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
-            fout<<"mflo "<<leftExp->allotedReg<<endl;
+            fout<<"div "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
+            }
+            else if(operat=="LT-INT"){
+            fout<<"slt "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
+            }
+            else if(operat=="LE-INT"){
+            fout<<"slt "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<","<<leftExp->allotedReg<<endl;
+            fout<<"not "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<endl;
+            }
+            else if(operat=="GT-INT"){
+            fout<<"slt "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<","<<leftExp->allotedReg<<endl;
+            }
+            else if(operat=="GE-INT"){
+            fout<<"slt "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
+            fout<<"not "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<endl;
             }
             else if(operat=="Plus-FLOAT"){
 
@@ -421,8 +433,37 @@ class Op2 : public ExpAst{
 
                 fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
                 fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
-                fout<<"dive.s $f2,$f1,$f2"<<endl;
+                fout<<"div.s $f2,$f1,$f2"<<endl;
                 fout<<"mfc1 "<<leftExp->allotedReg<<",$f2"<<endl;
+            }
+            else if(operat=="LT-FLOAT"){
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"c.lt.s 1 $f1,$f2"<<endl;
+                fout<<"li "<<leftExp->allotedReg<<",1"<<endl;
+                fout<<"movf "<<leftExp->allotedReg<<",$0,1"<<endl;
+
+            }
+            else if(operat=="LE-FLOAT"){
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"c.le.s $f1,$f2"<<endl;
+                fout<<"li "<<leftExp->allotedReg<<",1"<<endl;
+                fout<<"movf "<<leftExp->allotedReg<<",$0,1"<<endl;
+            }
+            else if(operat=="GT-FLOAT"){
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"c.le.s $f2,$f1"<<endl;
+                fout<<"li "<<leftExp->allotedReg<<",1"<<endl;
+                fout<<"movf "<<leftExp->allotedReg<<",$0,1"<<endl;
+            }
+            else if(operat=="GE-FLOAT"){
+                fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
+                fout<<"mtc1 "<<rightExp->allotedReg<<",$f2"<<endl;
+                fout<<"c.lt.s $f2,$f1"<<endl;
+                fout<<"li "<<leftExp->allotedReg<<",1"<<endl;
+                fout<<"movf "<<leftExp->allotedReg<<",$0,1"<<endl;
             }
             //TODO support <=,>= etc etc.
             if(rightExp->regToRestore){
