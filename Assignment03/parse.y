@@ -21,6 +21,7 @@ complete_code
 	} 
 	translation_unit
 		{
+			fout<<r.data;
 			globTab.name = "Global Symbol Table";
 			globTab.recPrint();
 		}
@@ -105,7 +106,7 @@ function_definition
 			fout<<"lw $ra,4($fp)\n";
 			fout<<"addi $sp,$fp,8\n";
 			fout<<"lw $fp,0($fp)\n";
-			fout<<"jr $ra";
+			fout<<"jr $ra\n";
 		}
 	;
 
@@ -901,6 +902,12 @@ postfix_expression
     	}		
 	| IDENTIFIER '(' expression_list ')' 
     	{
+
+    		if($1 == "printf")
+    		{
+    			$$=new Funcall(new Identifier($1), $3);
+    		}
+    		else{
     		if(globTab.inScope($1) == NULL)
     		{
     			cerr << "Function definition not found. Error at line " << lineNum << endl;
@@ -1050,6 +1057,7 @@ postfix_expression
     		$$->base_type=globTab.sym[$1]->type;
   			$$->isConst=0;
     		$$->isLval=0;
+    	}
     	}
 	| postfix_expression INC_OP
 		{

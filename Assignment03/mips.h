@@ -7,6 +7,7 @@ class Registers{
 public:
 	list<string> freeReg;
 	list<string> usedReg;
+	string data=".data \n"; //data segment
 
 string genLabel(){
 

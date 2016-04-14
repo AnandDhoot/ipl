@@ -154,6 +154,7 @@ class StringConst : public ExpAst {
         x = n;
         isConst=1;
         myTab=currTab;
+        type="string";
     }
 
     void print(int level){
@@ -162,8 +163,11 @@ class StringConst : public ExpAst {
     }
 
     void genCode(){
-        fout << x << " ---String Constant---" << endl;
-    }
+        string l =r.genLabel();
+        r.data+=l+": .asciiz "+x+"\n";
+        allotedReg = l;
+        regToRestore=0;
+        }
 };
 
 class Identifier : public ExpAst {
@@ -544,11 +548,35 @@ class Funcall : public ExpAst{
         }
 
         void genCode(){
-            fout << "NewFun" << ":" << endl;
-            funName->genCode();
+            if(funName->x=="printf"){
+
             for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
             {
                 (*it)->genCode();
+                if((*it)->type=="string"){
+                    fout<<"li $v0, 4\n";   
+                    fout<<"la $a0,"<<(*it)->allotedReg<<endl;
+                    fout<<"syscall\n";
+                }
+                else if((*it)->type=="float"){
+                    fout<<"li $v0, 2\n";   
+                    fout<<"mtc1 "<<(*it)->allotedReg<<",$f12"<<endl;
+                    fout<<"syscall\n";
+                }
+                else {
+                    fout<<"li $v0, 1\n";   
+                    fout<<"or $a0,$0,"<<(*it)->allotedReg<<endl;
+                    fout<<"syscall\n";
+                if((*it)->regToRestore){
+                //restore right 
+                    fout<<"lw "<<(*it)->allotedReg<<", 0($sp)"<<endl;
+                    fout<<"addi $sp, $sp, 4"<<endl;
+                }
+                else if((*it)->type!="string")
+                    r.freeUpReg((*it)->allotedReg);
+                }
+            }
+
             }
         }
 };
