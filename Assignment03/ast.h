@@ -413,6 +413,60 @@ class Op2 : public ExpAst{
             fout<<"slt "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<","<<rightExp->allotedReg<<endl;
             fout<<"not "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<endl;
             }
+            //TODO Handle Float
+            else if(operat=="AND"){
+                string l1=r.genLabel();
+                string l2=r.genLabel();
+                if(leftExp->type=="float")
+                    fout<<"sll "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<",1"<<endl;
+                fout<<"beqz "<<leftExp->allotedReg<<","<<l1<<endl;
+                if(rightExp->type=="float")
+                fout<<"sll "<<rightExp->allotedReg<<","<<rightExp->allotedReg<<",1"<<endl;
+                fout<<"beqz "<<rightExp->allotedReg<<","<<l1<<endl;
+                fout<<"li "<<leftExp->allotedReg<<", 1\n";
+                fout<<"j "<<l2<<endl;
+                fout<<l1<<":\n";
+                fout<<"li "<<leftExp->allotedReg<<", 0\n";
+                fout<<l2<<":\n";
+
+            }
+            else if(operat=="OR"){
+                string l1=r.genLabel();
+                string l2=r.genLabel();
+                 if(leftExp->type=="float")
+                    fout<<"sll "<<leftExp->allotedReg<<","<<leftExp->allotedReg<<",1"<<endl;
+                fout<<"bnez "<<leftExp->allotedReg<<","<<l1<<endl;
+                if(rightExp->type=="float")
+                    fout<<"sll "<<rightExp->allotedReg<<","<<rightExp->allotedReg<<",1"<<endl;
+                fout<<"bnez "<<rightExp->allotedReg<<","<<l1<<endl;
+                fout<<"li "<<leftExp->allotedReg<<", 0\n";
+                fout<<"j "<<l2<<endl;
+                fout<<l1<<":\n";
+                fout<<"li "<<leftExp->allotedReg<<", 1\n";
+                fout<<l2<<":\n";
+            }
+            else if(operat=="EQ"){
+                string l1=r.genLabel();
+                string l2=r.genLabel();
+                fout<<"beq "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<","<<l1<<endl;
+                fout<<"li "<<leftExp->allotedReg<<", 0\n";
+                fout<<"j "<<l2<<endl;
+                fout<<l1<<":\n";
+                fout<<"li "<<leftExp->allotedReg<<", 1\n";
+                fout<<l2<<":\n";
+
+            }
+            else if(operat=="NE"){
+                string l1=r.genLabel();
+                string l2=r.genLabel();
+                fout<<"bne "<<leftExp->allotedReg<<","<<rightExp->allotedReg<<","<<l1<<endl;
+                fout<<"li "<<leftExp->allotedReg<<", 0\n";
+                fout<<"j "<<l2<<endl;
+                fout<<l1<<":\n";
+                fout<<"li "<<leftExp->allotedReg<<", 1\n";
+                fout<<l2<<":\n";
+
+            }
             else if(operat=="Plus-FLOAT"){
 
                 fout<<"mtc1 "<<leftExp->allotedReg<<",$f1"<<endl;
