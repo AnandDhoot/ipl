@@ -716,10 +716,23 @@ class For : public StmtAst{
         }
 
         void genCode(){
+            string l1=r.genLabel();
+            string l2 = r.genLabel();
             initExp->genCode();
+            fout<<l1<<":\n";
             condExp->genCode();
-            incExp->genCode();
+            if(condExp->type!="float")
+            fout<<"beq $0,"<<condExp->allotedReg<<" "<<l2<<endl;
+            else{
+                fout<<"mtc1 "<<condExp->allotedReg<<",$f1\n";
+                fout<<"li.s $f2,0.0\n";
+                fout<<"c.eq.s $f1,$f2\n";
+                fout<<"bc1f "<<l1<<endl;
+            }
             bodyStmt->genCode();
+            incExp->genCode();
+            fout<<"j "<<l1<<endl;
+            fout<<l2<<":\n";
         }
 };
 
@@ -741,8 +754,22 @@ class While : public StmtAst{
         }
 
         void genCode(){
+            string l1=r.genLabel();
+            string l2 = r.genLabel();
+            fout<<l1<<":\n";
             whileExp->genCode();
+            if(whileExp->type!="float")
+            fout<<"beq $0,"<<whileExp->allotedReg<<" "<<l2<<endl;
+            else{
+                fout<<"mtc1 "<<whileExp->allotedReg<<",$f1\n";
+                fout<<"li.s $f2,0.0\n";
+                fout<<"c.eq.s $f1,$f2\n";
+                fout<<"bc1f "<<l1<<endl;
+            }
             thenStmt->genCode();
+            fout<<"j "<<l1<<endl;
+            fout<<l2<<":\n";
+
         }
 };
 
