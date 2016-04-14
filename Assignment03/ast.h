@@ -262,6 +262,7 @@ class Return : public StmtAst{
 
         void genCode(){
             retExp->genCode();
+            fout<<"sw "<<retExp->allotedReg<<"," <<myTab->retOffset<<"($fp)\n";
         }
 };
 
@@ -576,6 +577,72 @@ class Funcall : public ExpAst{
                     r.freeUpReg((*it)->allotedReg);
                 }
             }
+
+            }
+            else{
+                //push usedReg to stack
+                int i=-4;
+                list<string> restoreReg;
+                fout<<"addi $sp,$sp,"<<-4*(int)r.usedReg.size()<<endl;
+                string reg=r.storeReg();
+                
+                while (reg!=""){
+                    i+=4;
+                    fout<<"sw "<<reg<<","<<i<<"($sp)"<<endl;
+                    r.freeReg.push_back(reg);
+                    restoreReg.push_front(reg);
+                    reg=r.storeReg();
+                }
+                //make space for retval
+                fout<<"addi $sp,$sp,"<<-globTab.sym[funName->x]->size<<endl;
+                //push params
+                for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
+                {
+                    //handle structs /arrays
+                       (*it)->genCode();
+                       fout<<"addi $sp,$sp,-4\n";
+                       fout<<"sw "<<(*it)->allotedReg<<" ,0($sp)\n";
+                if((*it)->regToRestore){
+                    fout<<"lw "<<(*it)->allotedReg<<", 0($sp)"<<endl;
+                    fout<<"addi $sp, $sp, 4"<<endl;
+                }
+                else if((*it)->type!="string")
+                    r.freeUpReg((*it)->allotedReg);
+
+                 }
+                //call fxn
+                 fout<<"jal "<<funName->x<<endl;
+                for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
+                       fout<<"addi $sp,$sp,4\n";
+                //restore usedReg
+                while(restoreReg.size()>0){
+                    reg=restoreReg.front();
+                    restoreReg.pop_front();
+                    fout<<"lw "<<reg<<","<<i+globTab.sym[funName->x]->size<<"($sp)"<<endl;
+                    r.usedReg.push_back(reg);
+                    r.freeReg.remove(reg);
+                    i-=4;
+                 }
+                //load retVal TODO handle structs will be pain
+
+ reg = r.getNewReg();
+        if(reg==""){
+            regToRestore = 1;
+            //store
+            fout << "lw $a0" << ",0($sp)" << endl;
+            fout<<"addi $sp,$sp,"<<r.usedReg.size()*4+globTab.sym[funName->x]->size<<endl;
+            reg = r.getUsedReg();
+            fout << "addi $sp, $sp, -4" << endl;
+            fout << "sw "<<reg<<", 0($sp)"<<endl;
+            fout << "add " <<reg<< ",$a0,$0" << endl;
+            //load const
+            allotedReg = reg;
+        }
+        else{
+            fout << "lw " << reg << ",0($sp)" << endl;
+            allotedReg = reg;
+           fout<<"addi $sp,$sp,"<<r.usedReg.size()*4+globTab.sym[funName->x]->size-4<<endl;
+        }
 
             }
         }

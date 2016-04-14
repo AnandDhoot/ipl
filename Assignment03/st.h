@@ -62,6 +62,7 @@ public:
 	Tb* parent;
 	int offset;
 	string returnType;
+	int retOffset;
 	map<string,symbol*> sym;
 
 	Tb()

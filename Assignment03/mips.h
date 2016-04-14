@@ -51,6 +51,15 @@ string genLabel(){
 	}
 		return "";
 	}
+	string storeReg(){
+		//responsibility of caller to save and restore
+		if(usedReg.size()>0){
+		string a= usedReg.front();
+		usedReg.pop_front();
+		return a;
+	}
+		return "";
+	}
 
 	void freeUpReg(string reg){
 		usedReg.remove(reg);

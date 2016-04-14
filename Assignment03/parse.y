@@ -76,6 +76,7 @@ function_definition
 			// globTab.sym[currTab->name] = s;
 			parsingFun = true;
 			int localsWidth=0;
+			int paramWidth=0;
 
 			for(map<string,symbol*>::iterator iterator = currTab->sym.begin(); iterator != currTab->sym.end(); iterator++) 
 			{
@@ -83,8 +84,10 @@ function_definition
 					iterator->second->offset = iterator->second->offset - iterator->second->size+4;
 					localsWidth+=iterator->second->size;
 				}
-				else
+				else{
 					iterator->second->offset = iterator->second->offset - iterator->second->size + 8;
+					paramWidth+=iterator->second->size;
+				}
 			}
 
 			fout<<currTab->name<<":\n";
@@ -95,11 +98,11 @@ function_definition
 			//make space for locals
 			fout<<"addi $sp,$sp,"<<-localsWidth<<endl;
 			//store shit
+			currTab->retOffset=paramWidth+8;
 			Tb *newSymTab = new Tb();
 			currTab = newSymTab;
 			currTab->parent = &globTab;
 			offset = -4;
-
 			($4)->print(0);std::cout<<std::endl;
 			($4)->genCode();
 			//restore shit
@@ -185,7 +188,7 @@ fun_declarator
 			}
 
 			currTab->name = $1;
-				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
+				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, currSize, 0, currTab);
 				globTab.sym[currTab->name] = s;
 			offset = 0;
 
@@ -202,7 +205,7 @@ fun_declarator
 				exit(125);
 			}
 			currTab->name = $1;
-				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, 0, 0, currTab);
+				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, currSize, 0, currTab);
 				globTab.sym[currTab->name] = s;
 			offset = 0;
 		}
