@@ -540,8 +540,8 @@ class Funcall : public ExpAst{
             cout<<"(Funcall " << endl; 
             for(list<ExpAst *>::iterator it=expList.begin(); it != expList.end(); it++)
             {
-                cout << string(level+1, '\t');
-                (*it)->print(0);
+                (*it)->print(level+1);
+                cout<<endl;
             }
             cout << string(level, '\t');
             cout<<")";
@@ -591,7 +591,7 @@ class Ass : public StmtAst{
 
         void print(int level){
             cout << std::string(level, '\t');
-            cout<<"(Assign_exp " ; Exp->print(0); cout<<")";
+            cout<<"(Assign_exp \n" ; Exp->print(level +1); cout<<")";
         }
 
         void genCode(){
