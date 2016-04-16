@@ -1,3 +1,7 @@
+
+struct f {
+	int d;
+};
 int f(int x){
 	return x+1;
 }

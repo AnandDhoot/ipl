@@ -181,7 +181,7 @@ fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
 		{
 
-			if(globTab.inScope($1) != NULL && globTab.inScope($1)->vartype=="fun")
+			if(globTab.inScope($1) != NULL)
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
@@ -199,7 +199,7 @@ fun_declarator
 		}
 	| IDENTIFIER '(' ')' 
 		{
-			if(globTab.inScope($1) != NULL&&globTab.inScope($1)->vartype=="fun")
+			if(globTab.inScope($1) != NULL)
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
