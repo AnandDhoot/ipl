@@ -181,7 +181,7 @@ fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
 		{
 
-			if($1 != currTab->name && globTab.inScope($1) != NULL)
+			if(globTab.inScope($1) != NULL && globTab.inScope($1)->vartype=="fun")
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
@@ -199,7 +199,7 @@ fun_declarator
 		}
 	| IDENTIFIER '(' ')' 
 		{
-			if(globTab.inScope($1) != NULL)
+			if(globTab.inScope($1) != NULL&&globTab.inScope($1)->vartype=="fun")
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(125);
@@ -237,7 +237,7 @@ declarator
 	: IDENTIFIER 
 		{
 
-			if(currTab->inScope($1) != NULL)
+			if(currTab->localScope($1) != NULL)
 			{
 				cerr << "Redeclaration of symbol " + $1 + " at line " << lineNum << endl; 
 				exit(124);
@@ -888,6 +888,11 @@ postfix_expression
     			cerr << "Function definition not found. Error at line " << lineNum << endl;
     			exit(1243);
     		}
+    		if(currTab->localScope($1) != NULL)
+    		{
+    			cerr << "Illegal Fxn Call " << lineNum << endl;
+    			exit(1243);
+    		}
 
     		vector<symbol*> symArr;
     		symArr = ((globTab.inScope($1))->symtab)->sort_byoffset();
@@ -916,7 +921,11 @@ postfix_expression
     			cerr << "Function definition not found. Error at line " << lineNum << endl;
     			exit(1243);
     		}
-    		
+    		if(currTab->localScope($1) != NULL)
+    		{
+    			cerr << "Illegal Fxn Call " << lineNum << endl;
+    			exit(1243);
+    		}
     		vector<symbol*> symArr;
     		symArr = ((globTab.inScope($1))->symtab)->sort_byoffset();
     		int countParams = 0;
@@ -967,7 +976,6 @@ postfix_expression
 	    				}
     				}
 
-    				// cerr << leftType << " -- " << rightType << endl;
 
 	    			// Code from expression assignment
 					// (With some modifications)

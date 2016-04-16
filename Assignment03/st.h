@@ -94,6 +94,11 @@ symbol* inScope(string var){
 		return parent->inScope(var);
 	return NULL;
 }
+symbol* localScope(string var){
+	if(sym.find(var)!=sym.end())
+		return sym[var];
+	return NULL;
+}
 	void recPrint(){
 		cout << endl << "-----------------------" << endl;
 		cout<<name<<"\t"<<this<<"\n";
