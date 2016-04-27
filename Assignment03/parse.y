@@ -43,7 +43,7 @@ struct_specifier
 				exit(124);
 			}
 			currTab->name = "struct " +$2;
-			currTab->returnType = "struct " + currTab->name; // Basically, the type
+			currTab->returnType = currTab->name; // Basically, the type
 			symbol* s = new symbol(currTab->name, "struct", "global", currTab->returnType, 0, 0, currTab);
 			
 			globTab.sym[currTab->name] = s;
@@ -162,10 +162,10 @@ type_specifier                   // This is the information
     		// 	exit(0);
     		// }
 
-    		if(globTab.inScope($2)==NULL)
+    		if(globTab.inScope("struct "+$2)==NULL)
     			currSize = 0;
     		else
-    			currSize = globTab.inScope($2)->size;
+    			currSize = globTab.inScope("struct "+$2)->size;
     		if(parsingFun)
     		{
     			currTab->returnType = type0;
@@ -188,7 +188,10 @@ fun_declarator
 			}
 
 			currTab->name = $1;
-				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, currSize, 0, currTab);
+			int size=4;
+			if(r.structChk(currTab->returnType))
+				size=globTab.sym[currTab->returnType]->size;
+				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, size, 0, currTab);
 				globTab.sym[currTab->name] = s;
 			offset = 0;
 

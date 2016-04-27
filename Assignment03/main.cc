@@ -25,4 +25,5 @@ int main (int argc, char** arg)
 	Parser parser;
 	parser.parse();
 	fout.close();
+	cout<<r.structChk("struct a");
 }
