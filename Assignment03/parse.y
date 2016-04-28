@@ -86,11 +86,15 @@ function_definition
 				}
 				else{
 					iterator->second->offset = iterator->second->offset - iterator->second->size + 8;
+					if(iterator->second->dimensions.size()>0)
+						iterator->second->size=4;
 					paramWidth+=iterator->second->size;
 				}
 			}
-
+			if(currTab->name=="main")
 			fout<<currTab->name<<":\n";
+			else
+			fout<<"Fxn"+currTab->name<<":\n";
 			fout<<"addi $sp,$sp,-8\n";
 			fout<<"sw $ra,4($sp)\n";
 			fout<<"sw $fp,0($sp)\n";
@@ -228,8 +232,8 @@ parameter_list
 parameter_declaration
 	: type_specifier declarator 
 		{
-			for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
-				currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
+			//for(int i = 0; i<currTab->sym[currIdentifier]->dimensions.size(); i++)
+				//currTab->sym[currIdentifier]->size *= currTab->sym[currIdentifier]->dimensions[i];
 			currTab->sym[currIdentifier]->scope = "param";
 			offset += currTab->sym[currIdentifier]->size;
 			maxParamOffset = offset;

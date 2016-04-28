@@ -41,7 +41,7 @@ for(int i=0;i<size;i+=4){
 }
 bool structChk(string type){
 	if(type.size()<6) return false;
-    return type.substr(0,6)=="struct"&&type[type.size()]!='*';
+    return type.substr(0,6)=="struct"&&type[type.size()-1]!='*';
 }
 	string getNewReg(){
 		if(freeReg.size()>0){
