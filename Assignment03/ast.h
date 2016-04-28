@@ -422,44 +422,70 @@ public:
     }
     void genCode() {
 
-                //TODO Handle Float
-         if (operat == "AND") {
-            leftExp->genCode();
-            string l1 = r.genLabel();
-            string l2 = r.genLabel();
-            if (leftExp->type == "float")
-                fout << "sll " << leftExp->allotedReg << "," << leftExp->allotedReg << ",1" << endl;
-            fout << "beqz " << leftExp->allotedReg << "," << l1 << endl;
-            rightExp->genCode();
-            if (rightExp->type == "float")
-                fout << "sll " << rightExp->allotedReg << "," << rightExp->allotedReg << ",1" << endl;
-            fout << "beqz " << rightExp->allotedReg << "," << l1 << endl;
-            fout << "li " << leftExp->allotedReg << ", 1\n";
-            fout << "j " << l2 << endl;
-            fout << l1 << ":\n";
-            fout << "li " << leftExp->allotedReg << ", 0\n";
-            fout << l2 << ":\n";
-            return;
+             if (operat == "AND") {
+                leftExp->genCode();
+                string l1 = r.genLabel();
+                string l2 = r.genLabel();
+                if (leftExp->type == "float")
+                    fout << "sll " << leftExp->allotedReg << "," << leftExp->allotedReg << ",1" << endl;
+                fout << "beqz " << leftExp->allotedReg << "," << l1 << endl;
+                rightExp->genCode();
+                if (rightExp->type == "float")
+                    fout << "sll " << rightExp->allotedReg << "," << rightExp->allotedReg << ",1" << endl;
+                fout << "beqz " << rightExp->allotedReg << "," << l1 << endl;
+                fout << "li " << leftExp->allotedReg << ", 1\n";
+                fout << "j " << l2 << endl;
+                fout << l1 << ":\n";
+                fout << "li " << leftExp->allotedReg << ", 0\n";
+                fout << l2 << ":\n";
+                 if (rightExp->regToRestore) {
+                    //restore right
+                    fout << "lw " << rightExp->allotedReg << ", 0($sp)" << endl;
+                    fout << "addi $sp, $sp, 4" << endl;
+                    //now leftExp stored reg on TOS
+                }
+                else
+                    r.freeUpReg(rightExp->allotedReg);
+                if (leftExp->regToRestore) {
+                    regToRestore = 1;
+                }
+                allotedReg = leftExp->allotedReg;
+                return;
 
-        }
-        else if (operat == "OR") {
-                    leftExp->genCode();
-            string l1 = r.genLabel();
-            string l2 = r.genLabel();
-            if (leftExp->type == "float")
-                fout << "sll " << leftExp->allotedReg << "," << leftExp->allotedReg << ",1" << endl;
-            fout << "bnez " << leftExp->allotedReg << "," << l1 << endl;
-            rightExp->genCode();
-            if (rightExp->type == "float")
-                fout << "sll " << rightExp->allotedReg << "," << rightExp->allotedReg << ",1" << endl;
-            fout << "bnez " << rightExp->allotedReg << "," << l1 << endl;
-            fout << "li " << leftExp->allotedReg << ", 0\n";
-            fout << "j " << l2 << endl;
-            fout << l1 << ":\n";
-            fout << "li " << leftExp->allotedReg << ", 1\n";
-            fout << l2 << ":\n";
-            return;
-        }
+            }
+            else if (operat == "OR") {
+                leftExp->genCode();
+                string l1 = r.genLabel();
+                string l2 = r.genLabel();
+                if (leftExp->type == "float")
+                    fout << "sll " << leftExp->allotedReg << "," << leftExp->allotedReg << ",1" << endl;
+                fout << "bnez " << leftExp->allotedReg << "," << l1 << endl;
+                rightExp->genCode();
+                if (rightExp->type == "float")
+                    fout << "sll " << rightExp->allotedReg << "," << rightExp->allotedReg << ",1" << endl;
+                fout << "bnez " << rightExp->allotedReg << "," << l1 << endl;
+                fout << "li " << leftExp->allotedReg << ", 0\n";
+                fout << "j " << l2 << endl;
+                fout << l1 << ":\n";
+                fout << "li " << leftExp->allotedReg << ", 1\n";
+                fout << l2 << ":\n";
+                 if (rightExp->regToRestore) {
+                    //restore right
+                    fout << "lw " << rightExp->allotedReg << ", 0($sp)" << endl;
+                    fout << "addi $sp, $sp, 4" << endl;
+                    //now leftExp stored reg on TOS
+                }
+                else
+                    r.freeUpReg(rightExp->allotedReg);
+                if (leftExp->regToRestore) {
+                    regToRestore = 1;
+                }
+                allotedReg = leftExp->allotedReg;
+                return;
+            }
+
+
+
         leftExp->genCode();
         rightExp->genCode();
 
