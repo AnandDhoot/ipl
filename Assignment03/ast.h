@@ -506,14 +506,16 @@ public:
         }
         else if (operat == "LE-INT") {
             fout << "slt " << leftExp->allotedReg << "," << rightExp->allotedReg << "," << leftExp->allotedReg << endl;
-            fout << "not " << leftExp->allotedReg << "," << leftExp->allotedReg << endl;
+            fout << "li $a0, 1" << endl;
+            fout << "sub " << leftExp->allotedReg << ", $a0, " << leftExp->allotedReg << endl;
         }
         else if (operat == "GT-INT") {
             fout << "slt " << leftExp->allotedReg << "," << rightExp->allotedReg << "," << leftExp->allotedReg << endl;
         }
         else if (operat == "GE-INT") {
             fout << "slt " << leftExp->allotedReg << "," << leftExp->allotedReg << "," << rightExp->allotedReg << endl;
-            fout << "not " << leftExp->allotedReg << "," << leftExp->allotedReg << endl;
+            fout << "li $a0, 1" << endl;
+            fout << "sub " << leftExp->allotedReg << ", $a0, " << leftExp->allotedReg << endl;
         }
 
         else if (operat == "EQ") {
