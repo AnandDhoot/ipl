@@ -1,14 +1,11 @@
-int main() {
-	int a;
-	int b;
-	int c;
-	c = 1;
-	b = 21;
-	a = 3;
-	if(b == 2 && a == 3432)
-		c = 10;
-	else
-		c = 123;
-	printf(c, "\n");
-	printf(a);
+void f(int a[10]){
+	a[5]=1;
 }
+void main(){
+	int a[20][10];
+	a[6][5]=4;
+	printf(a[6][5], "\n");
+	f(a[6]);
+	printf(a[6][5], "\n");
+}
+

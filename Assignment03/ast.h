@@ -1185,7 +1185,17 @@ public:
         if (s->offset != 0)
             fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg
                  << ", " << s->offset << endl;
-        fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")" << endl;
+        
+        width = 4;
+        if (s->type.substr(0, 6) == "struct"  && s->type[s->type.size() - 1] != '*')
+        {
+            symbol *s1 = globTab.sym[base_type];
+            width = s1->size;
+        }
+        dimensions = s->dimensions;
+
+        if (dimensions.size() == 0)
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")" << endl;
 
         allotedReg = varIdent->allotedReg;
         regToRestore = varIdent->regToRestore;
@@ -1241,7 +1251,17 @@ public:
         if (s->offset != 0)
             fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg
                  << ", " << s->offset << endl;
-        fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")" << endl;
+        
+        width = 4;
+        if (s->type.substr(0, 6) == "struct" && s->type[s->type.size() - 1] != '*')
+        {
+            symbol *s1 = globTab.sym[base_type];
+            width = s1->size;
+        }
+        dimensions = s->dimensions;
+
+        if (dimensions.size() == 0)
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")" << endl;
 
         allotedReg = varIdent->allotedReg;
         regToRestore = varIdent->regToRestore;
