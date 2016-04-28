@@ -468,7 +468,7 @@ expression
  			}
 			else if(temp->type[temp->type.size()-1] == '*' && $3->type[$3->type.size()-1] == '*')
 			{
-				if(temp->type == $3->type)
+				if(temp->type == $3->type&&$3->dim.size()<2)
 				{
 					$$ = new Assign(temp, $3);
 				}
@@ -1093,10 +1093,15 @@ postfix_expression
     	{
     		ExpAst* temp=  $1;
     		$$ = new ArrayRef($1,$3);
-
     		if(temp->type[temp->type.size()-1]=='*' && $3->type=="int"){
+    		if(temp->type==temp->base_type){
+    			$$->base_type=temp->type.substr(0,temp->type.size()-1);
+    			$$->type=temp->type.substr(0,temp->type.size()-1);;
+    		}
+    		else{
     		$$->type=temp->type.substr(0,temp->type.size()-1);
     		$$->base_type=temp->base_type;
+    	}
     		if(temp->dim.size()>0){
     		temp->dim.erase(temp->dim.begin());
     		$$->dim= temp->dim;
@@ -1108,7 +1113,6 @@ postfix_expression
     		}
     		$$->isConst=0;
     		$$->isLval=temp->isLval;
-
     	}
     | postfix_expression '.' IDENTIFIER
 		{	ExpAst* temp=$1;

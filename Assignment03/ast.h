@@ -561,7 +561,6 @@ public:
             fout << "li " << leftExp->allotedReg << ",1" << endl;
             fout << "movf " << leftExp->allotedReg << ",$0,1" << endl;
         }
-        //TODO support <=,>= etc etc.
         if (rightExp->regToRestore) {
             //restore right
             fout << "lw " << rightExp->allotedReg << ", 0($sp)" << endl;
@@ -1063,7 +1062,7 @@ public:
         regToRestore = exp->regToRestore;
     }
 };
-
+    
 class ArrayRef : public ExpAst {
 
 public:
@@ -1099,7 +1098,10 @@ public:
 
         width = varIdent->width;
         dimensions = varIdent->dimensions;
-        dimensions.erase(dimensions.begin());
+        if(dimensions.size() > 0)
+            dimensions.erase(dimensions.begin());
+        else
+            fout << "lw " << varIdent->allotedReg << ", 0(" << varIdent->allotedReg << ")" << endl;
 
         int offst = varIdent->width;
         for (int i = 1; i < varIdent->dimensions.size(); i++)
@@ -1119,6 +1121,7 @@ public:
         }
         else
             r.freeUpReg(exp->allotedReg);
+        
     }
 };
 
