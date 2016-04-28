@@ -43,7 +43,6 @@ struct_specifier
 				exit(124);
 			}
 			currTab->name = "struct " +$2;
-			// currTab->returnType = "struct " + currTab->name; // Basically, the type
 			currTab->returnType = currTab->name; // Basically, the type
 			symbol* s = new symbol(currTab->name, "struct", "global", currTab->returnType, 0, 0, currTab);
 			
@@ -189,7 +188,10 @@ fun_declarator
 			}
 
 			currTab->name = $1;
-				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, currSize, 0, currTab);
+			int size=4;
+			if(r.structChk(currTab->returnType))
+				size=globTab.sym[currTab->returnType]->size;
+				symbol* s = new symbol(currTab->name, "fun", "", currTab->returnType, size, 0, currTab);
 				globTab.sym[currTab->name] = s;
 			offset = 0;
 

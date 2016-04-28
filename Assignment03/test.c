@@ -12,6 +12,7 @@ int main() {
 	struct temp f1;
 	struct temp1 f2[4];
 	struct temp1 f3;
+	a[1] = 110;
 	b[3][2] = a[1];
 	printf(b[3][2], "\n");
 }
