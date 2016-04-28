@@ -1,12 +1,17 @@
-struct f {
-	int d;
+struct temp1 {
+	int a[2];
 };
-int f(int x){
-	return x+1;
-}
-int main(struct f c[5], int b[3]) {
-	int x,*y;
-	struct f a;
-	a.d=1;
-	printf(a.d);
+struct temp {
+	int x;
+	int y[4];
+	struct temp1 z[2];
+};
+int main() {
+	int a[5];
+	int b[5][12];
+	struct temp f1;
+	struct temp1 f2[4];
+	struct temp1 f3;
+	b[3][2] = a[1];
+	printf(b[3][2], "\n");
 }

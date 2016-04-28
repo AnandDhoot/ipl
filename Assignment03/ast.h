@@ -45,6 +45,8 @@ private:
 } ;
 class ExpAst : public abstract_astnode {
     public:
+        int width;
+        vector<int> dimensions;
     string type;
     string name;
     string base_type;
@@ -214,6 +216,14 @@ class Identifier : public ExpAst {
         if(s == NULL) {
             cerr << "Not present in symTab" << endl; }
         // cerr << myTab->name << " " << s->name << " " << s->offset << endl;
+
+        width = 4;
+        if(s->type.substr(0,6) == "struct" && s->type[s->type.size()-1]!='*')
+        {
+            symbol *s1 = globTab.sym[base_type];
+            width = s1->size;
+        }
+        dimensions = s->dimensions;
 
         string reg = r.getNewReg();
         if(reg==""){
@@ -941,8 +951,68 @@ class ArrayRef : public ExpAst{
         }
 
         void genCode(){
-            varIdent->genCode();
+            // varIdent->genCode();
+            // cerr << "Array genCode\n";
+            // cerr << varIdent->type << " " << varIdent->dim.size() << " Width = " << varIdent->width << endl;
+
+            // exp->genCode();
+
+            getAddr();
+            if(dimensions.size() > 0)       // To handle arrays in functions
+                return;
+            
+            fout << "lw " << exp->allotedReg << ", 0(" << exp->allotedReg << ")"<<endl;
+
+        }
+
+        void getAddr(){
+            varIdent->getAddr();
             exp->genCode();
+
+            width = varIdent->width;
+            dimensions = varIdent->dimensions;
+            dimensions.erase(dimensions.begin());
+
+            int offst = varIdent->width;
+            for(int i=1; i<varIdent->dimensions.size(); i++)
+                offst *= varIdent->dimensions[i];
+            
+            string reg = r.getNewReg();
+            if(reg=="")
+            {
+                reg = r.getUsedReg();
+                regToRestore = 1;
+                //store
+                fout << "addi $sp, $sp, -4" << endl;
+                fout << "sw " << reg << ", 0($sp)" << endl;
+                //multiply offset of size of a to the i in a[i]
+                fout << "li " << reg << ", " << offst << endl;
+                fout << "mul " << exp->allotedReg << ", " << exp->allotedReg << ", " << reg << endl;
+                //restore
+                fout << "lw "<< reg <<", 0($sp)" << endl;
+                fout << "addi $sp, $sp, 4" << endl;
+                regToRestore = 0;
+            }
+            else{
+                fout << "li " << reg << ", " << offst << endl;
+                fout << "mul " << exp->allotedReg << ", " << exp->allotedReg << ", " << reg << endl;
+            }        
+            r.freeUpReg(reg);
+            
+            fout << "add " << varIdent->allotedReg << ", " << varIdent->allotedReg << ", " << exp->allotedReg << endl; 
+            allotedReg=varIdent->allotedReg;
+            regToRestore=varIdent->regToRestore;
+
+            if(exp->regToRestore){
+                //restore
+                fout<<"lw "<<exp->allotedReg<<", 0($sp)"<<endl;
+                fout<<"addi $sp, $sp, 4"<<endl;
+            }
+            else
+                r.freeUpReg(exp->allotedReg);
+
+            // cerr << varIdent->type << " " << varIdent->dim.size() << " Width = " << varIdent->width << endl;
+            // cerr << offst << endl;
         }
 };
 
@@ -984,6 +1054,14 @@ class Member : public ExpAst{
             symbol *s = someTab->sym[id->x];
             fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
                 << ", " << s->offset << endl;
+
+            width = 4;
+            if(s->type.substr(0,6) == "struct"  && s->type[s->type.size()-1]!='*')
+            {    
+                symbol *s1 = globTab.sym[base_type];
+                width = s1->size;
+            }
+            dimensions = s->dimensions;
 
             allotedReg = varIdent->allotedReg;
             regToRestore = varIdent->regToRestore;
@@ -1031,7 +1109,15 @@ class Arrow : public ExpAst{
             symbol *s = someTab->sym[id->x];
             fout << "addi " << varIdent->allotedReg << ", " << varIdent->allotedReg 
                 << ", " << s->offset << endl;
-
+            
+            width = 4;
+            if(s->type.substr(0,6) == "struct" && s->type[s->type.size()-1]!='*')
+            {    
+                symbol *s1 = globTab.sym[base_type];
+                width = s1->size;
+            }
+            dimensions = s->dimensions;
+            
             allotedReg = varIdent->allotedReg;
             regToRestore = varIdent->regToRestore;
         }
