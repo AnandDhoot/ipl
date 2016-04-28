@@ -565,14 +565,24 @@ class Assign : public ExpAst{
             cout << string(level, '\t');
                 cout<<"(Assign "; lExp->print(0);rightExp->print(0); cout<<")";
         }
-
+        void getAddr(){
+            genCode();
+        }
         void genCode(){
             if(r.structChk(lExp->type)){
             rightExp->getAddr();
             lExp->getAddr();  
             r.structCp(rightExp->allotedReg,lExp->allotedReg,globTab.sym[lExp->type]->size);
-            //r.freeUpReg(lExp->allotedReg);
-            r.freeUpReg(rightExp->allotedReg); 
+            if(lExp->regToRestore){
+                //restore left 
+                fout<<"lw "<<lExp->allotedReg<<", 0($sp)"<<endl;
+                fout<<"addi $sp, $sp, 4"<<endl;
+                //now rightExp stored reg on TOS
+            }
+            else
+                r.freeUpReg(lExp->allotedReg);
+            regToRestore=rightExp->regToRestore;
+            allotedReg=rightExp->allotedReg;
 
             }
             else{
