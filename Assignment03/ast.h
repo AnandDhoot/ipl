@@ -35,9 +35,7 @@ public:
     int offset;
     Tb* myTab;
     virtual void print (int level) = 0;
-// virtual std::string generate_code(const symbolTable&) = 0;
-// virtual basic_types getType() = 0;
-// virtual bool checkTypeofAST() = 0;
+
 protected:
 // virtual void setType(basic_types) = 0;
 private:

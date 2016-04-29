@@ -504,7 +504,7 @@ expression
 				else
 					$$ = new Assign(temp, $3);
 			}
-			$$->type = "int";
+			$$->type = temp->type;
 			$$->isConst=1;
 		}	
     ;
