@@ -571,31 +571,55 @@ public:
         else if (operat == "LT-FLOAT") {
             fout << "mtc1 " << leftExp->allotedReg << ",$f1" << endl;
             fout << "mtc1 " << rightExp->allotedReg << ",$f2" << endl;
-            fout << "c.lt.s 1 $f1,$f2" << endl;
+            fout << "c.lt.s $f1,$f2" << endl;
+            string l=r.genLabel();
+            string l2=r.genLabel();
+            fout << "bc1f " << l << endl;
             fout << "li " << leftExp->allotedReg << ",1" << endl;
-            fout << "movf " << leftExp->allotedReg << ",$0,1" << endl;
+            fout << "j "<<l2<<endl;
+            fout<<l<<":\n";
+            fout << "li " << leftExp->allotedReg << ",0" << endl;
+            fout<<l2<<":\n";
 
         }
         else if (operat == "LE-FLOAT") {
             fout << "mtc1 " << leftExp->allotedReg << ",$f1" << endl;
             fout << "mtc1 " << rightExp->allotedReg << ",$f2" << endl;
             fout << "c.le.s $f1,$f2" << endl;
+            string l=r.genLabel();
+            string l2=r.genLabel();
+            fout << "bc1f " << l << endl;
             fout << "li " << leftExp->allotedReg << ",1" << endl;
-            fout << "movf " << leftExp->allotedReg << ",$0,1" << endl;
+            fout << "j "<<l2<<endl;
+            fout<<l<<":\n";
+            fout << "li " << leftExp->allotedReg << ",0" << endl;
+            fout<<l2<<":\n";
         }
         else if (operat == "GT-FLOAT") {
             fout << "mtc1 " << leftExp->allotedReg << ",$f1" << endl;
             fout << "mtc1 " << rightExp->allotedReg << ",$f2" << endl;
-            fout << "c.le.s $f2,$f1" << endl;
+            fout << "c.lt.s $f2,$f1" << endl;
+            string l=r.genLabel();
+            string l2=r.genLabel();
+            fout << "bc1f " << l << endl;
             fout << "li " << leftExp->allotedReg << ",1" << endl;
-            fout << "movf " << leftExp->allotedReg << ",$0,1" << endl;
+            fout << "j "<<l2<<endl;
+            fout<<l<<":\n";
+            fout << "li " << leftExp->allotedReg << ",0" << endl;
+            fout<<l2<<":\n";
         }
         else if (operat == "GE-FLOAT") {
             fout << "mtc1 " << leftExp->allotedReg << ",$f1" << endl;
             fout << "mtc1 " << rightExp->allotedReg << ",$f2" << endl;
-            fout << "c.lt.s $f2,$f1" << endl;
+            fout << "c.le.s $f2,$f1" << endl;
+            string l=r.genLabel();
+            string l2=r.genLabel();
+            fout << "bc1f " << l << endl;
             fout << "li " << leftExp->allotedReg << ",1" << endl;
-            fout << "movf " << leftExp->allotedReg << ",$0,1" << endl;
+            fout << "j "<<l2<<endl;
+            fout<<l<<":\n";
+            fout << "li " << leftExp->allotedReg << ",0" << endl;
+            fout<<l2<<":\n";
         }
         if (rightExp->regToRestore) {
             //restore right
